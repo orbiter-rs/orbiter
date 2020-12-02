@@ -1,5 +1,7 @@
 use glob::glob;
+use std::ffi::OsStr;
 use std::fs;
+use std::path::Path;
 
 pub fn get_shim(
     func: &str,
@@ -14,9 +16,13 @@ pub fn get_shim(
 }
 
 pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let resolved_func = fs::canonicalize(glob(&func).unwrap().next().unwrap().unwrap()).unwrap();
-    let resolved_bin_dir =
-        fs::canonicalize(glob(&bin_dir).unwrap().next().unwrap().unwrap()).unwrap();
+    let func_name = Path::new(&func)
+        .file_name()
+        .and_then(OsStr::to_str)
+        .unwrap();
+    let globbed = glob(&bin_dir).unwrap().next().unwrap().unwrap();
+    let mut resolved_bin_dir = fs::canonicalize(&globbed).unwrap();
+    resolved_bin_dir.pop();
 
     Ok(format!(
         r##"
@@ -33,7 +39,7 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
 
 {func} "$@"
 "##,
-        func = resolved_func.to_str().unwrap(),
+        func = func_name,
         bin_dir = resolved_bin_dir.to_str().unwrap()
     ))
 }

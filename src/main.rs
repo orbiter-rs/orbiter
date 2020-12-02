@@ -16,7 +16,8 @@ mod paths;
 use crate::paths::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let file = File::open("orbiter.config.yml")?;
+    let config_path = get_config_path();
+    let file = File::open(config_path)?;
     let mut reader = BufReader::new(file);
     let items: Vec<InitItem> = from_reader(&mut reader);
     println!("{:?}", items);
