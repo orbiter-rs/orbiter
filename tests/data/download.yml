@@ -1,0 +1,10 @@
+- id: ff-dev
+  download: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
+  exec: "**/firefox"
+  post_download: "./GitAhead*.sh --include-subdir"
+  launcher:
+    name: firefox
+    exec: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
+    icon: firefox
+    menu_name: Firefox
+

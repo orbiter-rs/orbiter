@@ -1,0 +1,24 @@
+[package]
+name = "orbiter"
+version = "0.0.1"
+authors = ["Chris Chou <chhschou@hotmail.com>"]
+edition = "2018"
+license = "MIT"
+description = "A cross-shell plugin manager"
+homepage = "https://github.com/orbiter-rs/orbiter"
+repository = "https://github.com/orbiter-rs/orbiter"
+readme = "README.md"
+keywords = ["shell", "console", "zsh", "bash", "fish"]
+categories = ["command-line-utilities"]
+exclude = [".gitignore", "*.yml", "tests/**"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+void = "1.0.2"
+stringreader = "0.1.1"
+reqwest = {version = "0.10.8", features = ["blocking"]}
+dirs = "3.0.1"
+glob = "0.3.0"

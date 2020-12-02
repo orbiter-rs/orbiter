@@ -1,0 +1,5 @@
+- download: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
+  exec: "**/firefox"
+- download: https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/darwin/amd64/kubectl
+  exec: kubectl
+
