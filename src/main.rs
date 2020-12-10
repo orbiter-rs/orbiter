@@ -1,44 +1,17 @@
-use glob::glob;
-use std::fs;
-use std::fs::File;
-use std::io::BufReader;
-
 mod config;
 use crate::config::*;
-
 mod download;
-use crate::download::*;
-
-mod shimmer;
-use crate::shimmer::*;
-
 mod paths;
-use crate::paths::*;
+mod process;
+use crate::process::*;
+mod shimmer;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config_path = get_config_path();
-    let file = File::open(config_path)?;
-    let mut reader = BufReader::new(file);
-    let items: Vec<InitItem> = from_reader(&mut reader);
-    println!("{:?}", items);
-    let item = &items[0];
-
-    // create a working dir
-    let dir_path = get_item_dir_path(item);
-    fs::create_dir_all(&dir_path)?;
-    // save file
-    // download_file(item)?;
-
-    // change current dir
-    assert!(std::env::set_current_dir(&dir_path).is_ok());
-
-    // create shim
-    let base_shim = match &item.exec {
-        Executable::Run(cmd) => get_basic_shim(&cmd, &cmd),
-        Executable::Command { run, alias } => Ok(format!("{} {}", run, alias.as_ref().unwrap())),
-    };
-
-    println!("{}", &base_shim.unwrap());
+    let payloads = get_payloads()?;
+    println!("{:?}", payloads);
+    payloads.iter().for_each(|payload| {
+        process_payload(&payload);
+    });
 
     Ok(())
 }
