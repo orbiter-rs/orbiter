@@ -3,6 +3,15 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 
+pub fn get_func_name(func: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let func_name = Path::new(&func)
+        .file_name()
+        .and_then(OsStr::to_str)
+        .unwrap();
+
+    Ok(String::from(func_name))
+}
+
 pub fn get_shim(
     func: &str,
     bin_dir: &str,
@@ -20,10 +29,12 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
         .file_name()
         .and_then(OsStr::to_str)
         .unwrap();
-    let globbed = glob(&bin_dir).unwrap().next().unwrap().unwrap();
+
+    let globbed = glob(&bin_dir)?
+        .next()
+        .ok_or(format!("unable to locate {}", bin_dir))??;
     let mut resolved_bin_dir = fs::canonicalize(&globbed).unwrap();
     resolved_bin_dir.pop();
-
     Ok(format!(
         r##"
 #!/bin/sh

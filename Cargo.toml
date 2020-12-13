@@ -22,3 +22,5 @@ stringreader = "0.1.1"
 reqwest = {version = "0.10.8", features = ["blocking"]}
 dirs = "3.0.1"
 glob = "0.3.0"
+futures-util = "0.3.8"
+tempfile = "3.1.0"
