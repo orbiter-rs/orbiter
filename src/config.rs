@@ -70,6 +70,7 @@ pub struct Payload {
     // and `Deserialize`.
     pub id: Option<String>,
     pub download: Download,
+    pub extract: Option<String>,
     pub post_download: Option<String>,
     pub exec: Executable,
     pub menu: Option<Menu>,
@@ -93,6 +94,7 @@ mod parse_tests {
                 id: None, 
                 download: Download::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()), 
                 post_download: None,
+                extract: None,
                 exec: Executable::Run("**/firefox".to_string()), 
                 menu: None
             }
@@ -121,6 +123,7 @@ mod parse_tests {
                 id: Some("ff-dev".to_string()),
                 download: Download::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
                 post_download: Some("./GitAhead*.sh --include-subdir".to_string()),
+                extract: None,
                 exec: Executable::Run("**/firefox".to_string()),
                 menu: Some(Menu {
                     menu_name: "Firefox".to_string(),
@@ -156,6 +159,7 @@ mod parse_tests {
                     provider: None,
                 }),
                 post_download: Some("./GitAhead*.sh --include-subdir".to_string()),
+                extract: None,
                 exec: Executable::Command {
                     run: "**/GitAhead".to_string(),
                     alias: Some("gitahead".to_string())
@@ -166,6 +170,28 @@ mod parse_tests {
 
         assert_eq!(actual, expected)
     }
+
+    #[test]
+    fn it_should_parse_extract() {
+        let config = r#"
+        - id: ff-dev
+          download: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
+          extract: "tar xzf *.tar.gz"
+          exec: "**/firefox"
+          post_download: "./GitAhead*.sh --include-subdir"
+          menu:
+            name: firefox
+            run: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
+            icon: firefox
+            menu_name: Firefox
+        "#;
+
+        let actual: Vec<Payload> = parse(config).unwrap();
+        let expected ="tar xzf *.tar.gz";
+
+        assert_eq!(actual.first().unwrap().extract.as_ref().unwrap(), expected)
+    }
+
 }
 
 #[cfg(test)]
@@ -199,6 +225,7 @@ mod from_reader_tests {
                     provider: None
                 }),
                 post_download: Some("./GitAhead*.sh --include-subdir".to_string()),
+                extract: None,
                 exec: Executable::Command {
                     run: "**/GitAhead".to_string(),
                     alias: Some("gitahead".to_string())
