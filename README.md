@@ -4,4 +4,4 @@
 
 ### Order of Execution
 
-Order of execution of related Ice-mods: `init` -> `atpull!` -> `make'!!'` -> `mv` -> `cp` -> `make!` -> `atclone`/`atpull` -> `make` -> `(plugin script loading)` -> `src` -> `multisrc` -> `atload`.
+Order of execution of related hooks: `install`/`update` -> `extract` -> `make` -> `(plugin script loading)` -> `src` -> `multisrc` -> `load`.

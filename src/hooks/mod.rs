@@ -1,3 +1,6 @@
+pub mod extract;
 pub mod install;
+pub mod load;
+pub mod make;
 pub mod resource;
-pub mod script;
+pub mod update;

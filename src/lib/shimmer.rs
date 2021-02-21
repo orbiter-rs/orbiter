@@ -1,7 +1,12 @@
+use crate::lib::paths::*;
 use glob::glob;
 use std::ffi::OsStr;
 use std::fs;
+use std::fs::File;
+use std::io;
 use std::path::Path;
+
+use crate::lib::script::*;
 
 pub fn get_func_name(func: &str) -> Result<String, Box<dyn std::error::Error>> {
     let func_name = Path::new(&func)
@@ -53,4 +58,17 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
         func = func_name,
         bin_dir = resolved_bin_dir.to_str().unwrap()
     ))
+}
+
+pub fn persist_shim(cmd: &str, shim_content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let shim_fname = get_func_name(&cmd)?;
+    fs::create_dir_all(&get_bin_dir_path()?)?;
+    let shim_path = get_bin_file_path(&shim_fname)?;
+    let mut dest = File::create(&shim_path)?;
+    io::copy(&mut shim_content.as_bytes(), &mut dest)?;
+
+    // set shim mode
+    run_cmd(&format!("chmod +x {}", &shim_path.display().to_string()))?;
+
+    Ok(())
 }

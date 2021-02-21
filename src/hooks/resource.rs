@@ -4,10 +4,10 @@ use reqwest;
 use std::fs::File;
 use std::io;
 
-pub fn get_resource(item: &Payload) -> Result<(), Box<dyn std::error::Error>> {
-    let payload_config_dir = get_payload_config_dir_path(item)?;
+pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
+    let payload_config_dir = get_payload_config_dir_path(payload)?;
 
-    match &item.resource {
+    match &payload.resource {
         Resource::Repo(_) => todo!(),
         Resource::RepoRelease(_) => todo!(),
         Resource::Location(url) => {
