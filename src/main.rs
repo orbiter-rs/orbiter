@@ -1,10 +1,7 @@
-mod config;
-use crate::config::*;
-mod download;
-mod paths;
-mod process;
-use crate::process::*;
-mod shimmer;
+mod hooks;
+mod lib;
+use crate::lib::config::*;
+use crate::lib::process::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let payloads = get_payloads()?;

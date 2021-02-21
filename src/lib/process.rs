@@ -1,10 +1,12 @@
-use crate::config::*;
-use crate::download::*;
-use crate::paths::*;
-use crate::shimmer::*;
 use std::fs;
 use std::fs::File;
 use std::io;
+
+use crate::hooks::install::*;
+use crate::hooks::resource::*;
+use crate::lib::config::*;
+use crate::lib::paths::*;
+use crate::lib::shimmer::*;
 
 fn persist_shim(cmd: &str, shim_content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let shim_fname = get_func_name(&cmd)?;
@@ -21,9 +23,9 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     if !payload_orbiter_dir_path.exists() {
         fs::create_dir_all(&payload_orbiter_dir_path)?;
         // save file
-        download_payload(payload)?;
+        get_resource(payload)?;
 
-        // TODO: extract archive
+        // TODO: extract resource
 
         // change current dir
         let payload_dir = get_payload_dir_path(payload)?;

@@ -1,16 +1,16 @@
-use crate::config::*;
-use crate::paths::*;
+use crate::lib::config::*;
+use crate::lib::paths::*;
 use reqwest;
 use std::fs::File;
 use std::io;
 
-pub fn download_payload(item: &Payload) -> Result<(), Box<dyn std::error::Error>> {
+pub fn get_resource(item: &Payload) -> Result<(), Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(item)?;
 
-    match &item.download {
-        Download::Repo(_) => todo!(),
-        Download::RepoRelease(_) => todo!(),
-        Download::Location(url) => {
+    match &item.resource {
+        Resource::Repo(_) => todo!(),
+        Resource::RepoRelease(_) => todo!(),
+        Resource::Location(url) => {
             let res = reqwest::blocking::get(url)?;
             let mut dest = {
                 let fname = res

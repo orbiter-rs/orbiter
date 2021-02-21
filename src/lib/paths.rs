@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::config::*;
+use crate::lib::config::*;
 
 pub const DEFAULT_ORBITER_CONFIG_HOME: &str = ".orbiter";
 pub const DEFAULT_ORBITER_PAYLOADS_HOME: &str = "payloads";
