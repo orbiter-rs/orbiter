@@ -4,6 +4,7 @@ use crate::lib::config::*;
 
 pub const DEFAULT_ORBITER_CONFIG_HOME: &str = ".orbiter";
 pub const DEFAULT_ORBITER_PAYLOADS_HOME: &str = "payloads";
+pub const DEFAULT_ORBITER_PAYLOADS_CURRENT_INSTALL_HOME: &str = "current";
 pub const DEFAULT_ORBITER_DASHBOARD_HOME: &str = "dashboard";
 pub const DEFAULT_ORBITER_DASHBOARD_BIN_HOME: &str = "bin";
 pub const DEFAULT_ORBITER_CONFIG_FILENAME: &str = ".orbiter.config.yml";
@@ -32,6 +33,15 @@ pub fn get_payload_dir_path(payload: &Payload) -> Result<PathBuf, Box<dyn std::e
         .join(payload.id.as_ref().unwrap());
 
     Ok(payload_dir)
+}
+
+// .orbiter/payloads/<payload id>/current
+pub fn get_payload_current_install_dir_path(
+    payload: &Payload,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let dir = get_payload_dir_path(payload)?.join(DEFAULT_ORBITER_PAYLOADS_CURRENT_INSTALL_HOME);
+
+    Ok(dir)
 }
 
 // .orbiter/payloads/<payload id>/.__orbiter__

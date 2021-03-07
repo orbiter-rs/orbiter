@@ -11,18 +11,14 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
     if !payload_orbiter_dir_path.exists() {
         fs::create_dir_all(&payload_orbiter_dir_path)?;
-        // save file
+        // save resource
         get_resource(payload)?;
 
         // extract resource
         if let Some(extract_cmd) = &payload.extract {
             // set wd to payload config dir
-            let payload_config_dir = get_payload_config_dir_path(payload)?;
-            assert!(std::env::set_current_dir(&payload_config_dir).is_ok());
-            println!(
-                "payload_config_dir: {}",
-                &payload_config_dir.display().to_string()
-            );
+            let current_install_dir = get_payload_current_install_dir_path(payload)?;
+            assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
             extract(&extract_cmd)?;
         }
@@ -36,7 +32,6 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         match &payload.exec {
             Executable::Run(cmd) => {
                 let shim_content = get_shim(&cmd, &cmd, None)?;
-
                 persist_shim(&cmd, &shim_content)?;
             }
 

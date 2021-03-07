@@ -1,12 +1,11 @@
 use crate::lib::paths::*;
+use crate::lib::script::*;
 use glob::glob;
 use std::ffi::OsStr;
 use std::fs;
 use std::fs::File;
 use std::io;
 use std::path::Path;
-
-use crate::lib::script::*;
 
 pub fn get_func_name(func: &str) -> Result<String, Box<dyn std::error::Error>> {
     let func_name = Path::new(&func)

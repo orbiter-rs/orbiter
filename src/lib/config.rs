@@ -25,15 +25,15 @@ pub fn get_payloads() -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Repo {
-    repo: String,
-    provider: Option<String>,
+    pub repo: String,
+    pub provider: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RepoRelease {
-    repo: String,
-    provider: Option<String>,
-    binary_pattern: Option<String>,
+    pub repo: String,
+    pub provider: Option<String>,
+    pub binary_pattern: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
