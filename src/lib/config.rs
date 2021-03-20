@@ -158,6 +158,7 @@ mod parse_tests {
             resource: Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
+                ver: None,
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,
@@ -222,6 +223,7 @@ mod from_reader_tests {
             resource: Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
+                ver: None,
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,

@@ -34,12 +34,6 @@ fn set_resource_as_current(
     resource_path: &Path,
     payload_current_install_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // let resource_name = Path::new(&resource_path)
-    //     .file_name()
-    //     .and_then(OsStr::to_str)
-    //     .unwrap();
-
-    // fs::create_dir_all(&payload_current_install_dir)?;
 
     let dest = payload_current_install_dir;
 
