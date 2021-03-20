@@ -1,6 +1,7 @@
 use std::fs;
 
 use crate::hooks::extract::*;
+use crate::hooks::install::*;
 use crate::hooks::resource::*;
 use crate::lib::config::*;
 use crate::lib::paths::*;
@@ -26,7 +27,20 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         // set wd to payload dir
         let payload_dir = get_payload_dir_path(payload)?;
         assert!(std::env::set_current_dir(&payload_dir).is_ok());
+
+        // install resource
+        if let Some(install_cmd) = &payload.install {
+            // set wd to payload config dir
+            let current_install_dir = get_payload_current_install_dir_path(payload)?;
+        println!("current_install_dir for install: {}", &current_install_dir.display().to_string());
+
+            assert!(std::env::set_current_dir(&current_install_dir).is_ok());
+
+            install(&install_cmd)?;
+        }
+
         println!("payload_dir: {}", &payload_dir.display().to_string());
+
 
         // create shim
         match &payload.exec {

@@ -4,4 +4,4 @@
 
 ### Order of Execution
 
-Order of execution of related hooks: `install`/`update` -> `extract` -> `make` -> `(plugin script loading)` -> `src` -> `multisrc` -> `load`.
+Order of execution of related hooks: `install`/`update` -> `extract` -> `make` -> `install` -> `(plugin script loading)` -> `src` -> `multisrc` -> `load`.

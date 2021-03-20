@@ -27,12 +27,14 @@ pub fn get_payloads() -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
 pub struct Repo {
     pub repo: String,
     pub provider: Option<String>,
+    pub ver: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RepoRelease {
     pub repo: String,
     pub provider: Option<String>,
+    pub ver: Option<String>,
     pub binary_pattern: Option<String>,
 }
 

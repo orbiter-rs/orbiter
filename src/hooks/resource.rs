@@ -4,6 +4,7 @@ use crate::lib::script::*;
 use reqwest;
 use reqwest::Url;
 use std::ffi::OsStr;
+use std::fs;
 use std::fs::{rename, File};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -11,16 +12,38 @@ use std::path::{Path, PathBuf};
 const DEFAULT_PROVIDER: &str = "github";
 
 fn move_resource_to_current_dir(
-    payload_current_install_dir: &Path,
     resource_path: &Path,
+    payload_current_install_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let resource_name = Path::new(&resource_path)
         .file_name()
         .and_then(OsStr::to_str)
         .unwrap();
 
+    fs::create_dir_all(&payload_current_install_dir)?;
+
     let dest = payload_current_install_dir.join(&resource_name);
 
+    // move file/dir to dest
+    rename(&resource_path, &dest)?;
+
+    Ok(())
+}
+
+fn set_resource_as_current(
+    resource_path: &Path,
+    payload_current_install_dir: &Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // let resource_name = Path::new(&resource_path)
+    //     .file_name()
+    //     .and_then(OsStr::to_str)
+    //     .unwrap();
+
+    // fs::create_dir_all(&payload_current_install_dir)?;
+
+    let dest = payload_current_install_dir;
+
+    // move file/dir to dest
     rename(&resource_path, &dest)?;
 
     Ok(())
@@ -45,8 +68,9 @@ fn clone_from_github(repo: &str) -> Result<String, Box<dyn std::error::Error>> {
 
 pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(&payload)?;
+    let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
-    let resource_path = match &payload.resource {
+    match &payload.resource {
         Resource::RepoRelease(rel) => todo!(),
         Resource::Repo(repo) => {
             let provider = if let Some(provider) = &repo.provider {
@@ -62,7 +86,8 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
                 _ => clone_from_github(&repo.repo)?,
             };
 
-            payload_config_dir.join(&repo_name)
+            let resource_path = payload_config_dir.join(&repo_name);
+            set_resource_as_current(&resource_path, &current_install_dir)?;
         }
         Resource::Location(url) => {
             let res = reqwest::blocking::get(url)?;
@@ -78,12 +103,9 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
             let file_content = res.bytes()?;
             io::copy(&mut file_content.as_ref(), &mut dest.0)?;
 
-            dest.1
+            move_resource_to_current_dir(&dest.1, &current_install_dir)?;
         }
     };
-
-    let current_install_dir = get_payload_current_install_dir_path(&payload)?;
-    move_resource_to_current_dir(&resource_path, &current_install_dir)?;
 
     Ok(())
 }
