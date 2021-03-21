@@ -34,7 +34,6 @@ fn set_resource_as_current(
     resource_path: &Path,
     payload_current_install_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
-
     let dest = payload_current_install_dir;
 
     // move file/dir to dest
@@ -53,10 +52,24 @@ fn get_url_resource_name(url: &Url) -> Result<String, Box<dyn std::error::Error>
     Ok(resource_name.to_string())
 }
 
-fn clone_from_github(repo: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let url = Url::parse(&format!("https://github.com/{}", repo))?;
+fn clone_repo(
+    payload_config_dir: &Path,
+    repo: &Repo,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let provider = if let Some(provider) = &repo.provider {
+        &provider
+    } else {
+        DEFAULT_PROVIDER
+    };
 
+    let url = match provider {
+        "github" => Url::parse(&format!("https://github.com/{}", &repo.repo))?,
+        _ => Url::parse(&format!("https://github.com/{}", &repo.repo))?,
+    };
+
+    assert!(std::env::set_current_dir(&payload_config_dir).is_ok());
     run_cmd(&format!("git clone {}", &url))?;
+
     get_url_resource_name(&url)
 }
 
@@ -65,23 +78,17 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
     match &payload.resource {
-        Resource::RepoRelease(rel) => todo!(),
+        Resource::RepoRelease(_rel) => todo!(),
         Resource::Repo(repo) => {
-            let provider = if let Some(provider) = &repo.provider {
-                &provider
-            } else {
-                DEFAULT_PROVIDER
-            };
-
-            assert!(std::env::set_current_dir(&payload_config_dir).is_ok());
-
-            let repo_name = match provider {
-                "github" => clone_from_github(&repo.repo)?,
-                _ => clone_from_github(&repo.repo)?,
-            };
-
+            let repo_name = clone_repo(&&payload_config_dir, &repo)?;
             let resource_path = payload_config_dir.join(&repo_name);
             set_resource_as_current(&resource_path, &current_install_dir)?;
+
+            // checkout branch/tag
+            if let Some(ver) = &repo.ver {
+                assert!(std::env::set_current_dir(&current_install_dir).is_ok());
+                run_cmd(&format!("git checkout {}", &ver))?;
+            };
         }
         Resource::Location(url) => {
             let res = reqwest::blocking::get(url)?;
