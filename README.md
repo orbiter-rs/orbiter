@@ -1,6 +1,6 @@
 # orbiter
 
-> A cross-shell plugin manager for zsh and more.
+> A cross-shell plugin and package manager, heavily inspired by zinit
 
 ### Order of Execution
 
