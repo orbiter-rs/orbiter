@@ -4,7 +4,7 @@ version = "0.0.3-alpha.0"
 authors = ["Chris Chou <chhschou@hotmail.com>"]
 edition = "2018"
 license = "MIT"
-description = "A cross-shell plugin manager"
+description = "A cross-shell plugin and package manager"
 homepage = "https://github.com/orbiter-rs/orbiter"
 repository = "https://github.com/orbiter-rs/orbiter"
 readme = "README.md"
@@ -19,7 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 void = "1.0.2"
 stringreader = "0.1.1"
-reqwest = {version = "0.10.8", features = ["blocking"]}
+reqwest = {version = "0.11", features = ["blocking"]}
 dirs = "3.0.1"
 glob = "0.3.0"
 futures-util = "0.3.8"

@@ -52,17 +52,23 @@ fn get_url_resource_name(url: &Url) -> Result<String, Box<dyn std::error::Error>
     Ok(resource_name.to_string())
 }
 
+fn get_provider(repo_provider_type: &Option<String>) -> Result<String, Box<dyn std::error::Error>> {
+    let provider = if let Some(provider_type) = &repo_provider_type {
+        String::from(provider_type)
+    } else {
+        String::from(DEFAULT_PROVIDER)
+    };
+
+    Ok(provider)
+}
+
 fn clone_repo(
     payload_config_dir: &Path,
     repo: &Repo,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let provider = if let Some(provider) = &repo.provider {
-        &provider
-    } else {
-        DEFAULT_PROVIDER
-    };
+    let provider = get_provider(&repo.provider)?;
 
-    let url = match provider {
+    let url = match provider.as_ref() {
         "github" => Url::parse(&format!("https://github.com/{}", &repo.repo))?,
         _ => Url::parse(&format!("https://github.com/{}", &repo.repo))?,
     };
@@ -73,12 +79,56 @@ fn clone_repo(
     get_url_resource_name(&url)
 }
 
+fn get_repo_release_asset_url(repo: &RepoRelease) -> Result<String, Box<dyn std::error::Error>> {
+    let provider = get_provider(&repo.provider)?;
+
+    let first_release_url = match provider.as_ref() {
+        "github" => Url::parse(&format!(
+            "https://api.github.com/repos/{}/releases",
+            &repo.repo
+        ))?,
+        _ => Url::parse(&format!(
+            "https://api.github.com/repos/{}/releases",
+            &repo.repo
+        ))?,
+    };
+
+    Ok(first_release_url.to_string())
+}
+
+fn get_asset(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    url: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let client = reqwest::blocking::Client::builder().timeout(None).build()?;
+    let res = client.get(url).send()?;
+    let mut dest = {
+        let file_name = get_url_resource_name(res.url())?;
+
+        println!("file to download: '{}'", file_name);
+        let file_path = payload_config_dir.join(&file_name);
+        println!("will be located under: '{:?}'", &file_path);
+        (File::create(&file_path)?, file_path)
+    };
+
+    let file_content = res.bytes()?;
+    io::copy(&mut file_content.as_ref(), &mut dest.0)?;
+
+    move_resource_to_current_dir(&dest.1, &current_install_dir)?;
+
+    Ok(())
+}
+
 pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(&payload)?;
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
     match &payload.resource {
-        Resource::RepoRelease(_rel) => todo!(),
+        Resource::RepoRelease(rel) => {
+            let url = get_repo_release_asset_url(&rel)?;
+            get_asset(&payload_config_dir, &current_install_dir, &url)?;
+        }
         Resource::Repo(repo) => {
             let repo_name = clone_repo(&&payload_config_dir, &repo)?;
             let resource_path = payload_config_dir.join(&repo_name);
@@ -91,20 +141,7 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
             };
         }
         Resource::Location(url) => {
-            let res = reqwest::blocking::get(url)?;
-            let mut dest = {
-                let file_name = get_url_resource_name(res.url())?;
-
-                println!("file to download: '{}'", file_name);
-                let file_path = payload_config_dir.join(&file_name);
-                println!("will be located under: '{:?}'", &file_path);
-                (File::create(&file_path)?, file_path)
-            };
-
-            let file_content = res.bytes()?;
-            io::copy(&mut file_content.as_ref(), &mut dest.0)?;
-
-            move_resource_to_current_dir(&dest.1, &current_install_dir)?;
+            get_asset(&payload_config_dir, &current_install_dir, &url)?;
         }
     };
 
