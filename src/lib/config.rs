@@ -8,10 +8,6 @@ use serde::Serialize;
 // mod paths;
 use crate::lib::paths::*;
 
-pub fn parse(config: &str) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
-    Ok(serde_yaml::from_str(config)?)
-}
-
 pub fn from_reader(reader: &mut dyn Read) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
     Ok(serde_yaml::from_reader(reader)?)
 }
@@ -27,13 +23,7 @@ pub fn get_payloads() -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
 pub struct Repo {
     pub repo: String,
     pub provider: Option<String>,
-    pub ver: Option<String>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct RepoRelease {
-    pub repo: String,
-    pub provider: Option<String>,
+    pub is_release: Option<bool>,
     pub ver: Option<String>,
     pub binary_pattern: Option<String>,
 }
@@ -43,7 +33,6 @@ pub struct RepoRelease {
 pub enum Resource {
     Location(String),
     Repo(Repo),
-    RepoRelease(RepoRelease),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -80,6 +69,10 @@ pub struct Payload {
 #[cfg(test)]
 mod parse_tests {
     use super::*;
+
+    pub fn parse(config: &str) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
+        Ok(serde_yaml::from_str(config)?)
+    }
 
     #[test]
     fn it_should_parse_minimum() {
@@ -159,6 +152,8 @@ mod parse_tests {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
+                is_release: None,
+                binary_pattern: None,
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,
@@ -171,6 +166,28 @@ mod parse_tests {
         }];
 
         assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn it_should_parse_repo_release() {
+        let config = r#"
+        - id: neovim
+          resource:
+            repo: neovim/neovim
+            binary_pattern: "*.tar.gz"
+          extract: "tar xvf *.tar.*"
+          exec: "**/bin/nvim"
+        "#;
+
+        let actual: Vec<Payload> = parse(config).unwrap();
+        let expected = "*.tar.gz";
+
+        let actual_resource = &actual.first().unwrap().resource;
+        if let Resource::Repo(rel) = actual_resource {
+            assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected)
+        } else {
+            panic!("No binary_pattern")
+        }
     }
 
     #[test]
@@ -224,6 +241,8 @@ mod from_reader_tests {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
+                is_release: None,
+                binary_pattern: None,
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,

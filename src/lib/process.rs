@@ -19,6 +19,7 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         if let Some(extract_cmd) = &payload.extract {
             // set wd to payload config dir
             let current_install_dir = get_payload_current_install_dir_path(payload)?;
+            println!("current_install_dir [{}]", &current_install_dir.display());
             assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
             extract(&extract_cmd)?;
@@ -32,7 +33,10 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         if let Some(install_cmd) = &payload.install {
             // set wd to payload config dir
             let current_install_dir = get_payload_current_install_dir_path(payload)?;
-        println!("current_install_dir for install: {}", &current_install_dir.display().to_string());
+            println!(
+                "current_install_dir for install: {}",
+                &current_install_dir.display().to_string()
+            );
 
             assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
@@ -40,7 +44,6 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         }
 
         println!("payload_dir: {}", &payload_dir.display().to_string());
-
 
         // create shim
         match &payload.exec {
