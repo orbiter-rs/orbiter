@@ -155,16 +155,25 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
     let release: Vec<GitHubRelease> = res.json()?;
     let assets = &release.first().unwrap().assets;
 
-    let os_matched_assets: Vec<&GitHubReleaseAsset> = assets
-        .into_iter()
-        .filter(|asset| match_file_ext_by_arch(&asset.name).unwrap_or(false))
-        .collect();
+    let matched_assets = if let Some(binary_pattern) = &repo.binary_pattern {
+        let re = Regex::new(&binary_pattern)?;
 
-    Ok(os_matched_assets
-        .first()
-        .unwrap()
-        .browser_download_url
-        .clone())
+        let binary_pattern_matched_assets: Vec<&GitHubReleaseAsset> = assets
+            .into_iter()
+            .filter(|asset| re.is_match(&asset.name))
+            .collect();
+
+        binary_pattern_matched_assets
+    } else {
+        let os_matched_assets: Vec<&GitHubReleaseAsset> = assets
+            .into_iter()
+            .filter(|asset| match_file_ext_by_arch(&asset.name).unwrap_or(false))
+            .collect();
+
+        os_matched_assets
+    };
+
+    Ok(matched_assets.first().unwrap().browser_download_url.clone())
 }
 
 fn get_asset(
