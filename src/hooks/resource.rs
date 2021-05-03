@@ -4,7 +4,7 @@ use crate::lib::script::*;
 use regex::Regex;
 use reqwest::header::CONTENT_DISPOSITION;
 use reqwest::Url;
-use reqwest::{self, Response};
+use reqwest::{self};
 use serde::Deserialize;
 use serde::Serialize;
 use std::ffi::OsStr;
@@ -49,8 +49,6 @@ fn set_resource_as_current(
 fn get_resource_name(
     response: &reqwest::blocking::Response,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    println!("response: [{:?}]", &response);
-
     let resource_name =
         if let Some(content_disposition) = response.headers().get(CONTENT_DISPOSITION) {
             // try response content-disposition header
@@ -118,9 +116,9 @@ struct GitHubRelease {
 fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
     let os_regex = match os {
-        "linux" => Regex::new(r"^\d{4}-\d{2}-\d{2}$")?,
-        "macos" => Regex::new(r"^\d{4}-\d{2}-\d{2}$")?,
-        "windows" => Regex::new(r"^\d{4}-\d{2}-\d{2}$")?,
+        "linux" => Regex::new(r"(linux|linux-gnu)")?,
+        "macos" => Regex::new(r"(darwin|mac|osx|os-x)")?,
+        "windows" => Regex::new(r"(windows|cygwin|[-_]win|win64|win32)")?,
         _ => todo!(),
     };
 
@@ -159,7 +157,7 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
 
     let os_matched_assets: Vec<&GitHubReleaseAsset> = assets
         .into_iter()
-        .filter(|asset| match_file_ext_by_arch(&asset.name).is_ok())
+        .filter(|asset| match_file_ext_by_arch(&asset.name).unwrap_or(false))
         .collect();
 
     Ok(os_matched_assets
@@ -178,10 +176,7 @@ fn get_asset(
     let res = client.get(url).send()?;
     let mut dest = {
         let file_name = get_resource_name(&res)?;
-
-        println!("file to download: '{}'", file_name);
         let file_path = payload_config_dir.join(&file_name);
-        println!("will be located under: '{:?}'", &file_path);
         (File::create(&file_path)?, file_path)
     };
 
@@ -203,7 +198,6 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
                 if is_release {
                     // repo release
                     let url = get_repo_release_asset_url(&repo)?;
-                    println!("url: [{:?}]", &url);
                     get_asset(&payload_config_dir, &current_install_dir, &url)?;
                 } else {
                     let repo_name = clone_repo(&&payload_config_dir, &repo)?;
