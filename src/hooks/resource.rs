@@ -12,6 +12,7 @@ use std::fs;
 use std::fs::{rename, File};
 use std::io;
 use std::path::Path;
+use uname::uname;
 
 const DEFAULT_PROVIDER: &str = "github";
 
@@ -113,7 +114,7 @@ struct GitHubRelease {
     assets: Vec<GitHubReleaseAsset>,
 }
 
-fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Error>> {
+fn get_binary_pattern_by_os() -> Result<regex::Regex, Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
     let os_regex = match os {
         "linux" => Regex::new(r"(linux|linux-gnu)")?,
@@ -125,10 +126,15 @@ fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Erro
     Ok(os_regex)
 }
 
-fn match_file_ext_by_arch(file_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
-    let re = get_binary_pattern_by_arch()?;
+fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Error>> {
+    let machine_arch = uname().unwrap().machine;
+    let arch_regex = match machine_arch.as_ref() {
+        "x86_64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
+        "amd64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
+        _ => todo!(),
+    };
 
-    Ok(re.is_match(&file_name))
+    Ok(arch_regex)
 }
 
 fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error::Error>> {
@@ -165,12 +171,24 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
 
         binary_pattern_matched_assets
     } else {
+        let re_os = get_binary_pattern_by_os()?;
         let os_matched_assets: Vec<&GitHubReleaseAsset> = assets
             .into_iter()
-            .filter(|asset| match_file_ext_by_arch(&asset.name).unwrap_or(false))
+            .filter(|asset| re_os.is_match(&asset.name))
             .collect();
 
-        os_matched_assets
+        let re_arch = get_binary_pattern_by_arch()?;
+        let os_arch_matched_assets: Vec<&GitHubReleaseAsset> = os_matched_assets
+            .clone()
+            .into_iter()
+            .filter(|asset| re_arch.is_match(&asset.name))
+            .collect();
+
+        if os_arch_matched_assets.len() > 0usize {
+            os_arch_matched_assets
+        } else {
+            os_matched_assets
+        }
     };
 
     Ok(matched_assets.first().unwrap().browser_download_url.clone())
