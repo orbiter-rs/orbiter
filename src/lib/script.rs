@@ -1,10 +1,12 @@
 // run shell script in subshell
 
+use std::env;
 use std::io::{self, Write};
 use std::process::Command;
 
 pub fn run_cmd(full_cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let output = Command::new("sh")
+    let dflt_shell = env::var("SHELL")?;
+    let output = Command::new(dflt_shell)
         .arg("-c")
         .arg(full_cmd)
         .output()

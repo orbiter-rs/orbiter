@@ -51,6 +51,13 @@ pub struct Menu {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum SourceTarget {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Payload {
     // The `string_or_struct` function delegates deserialization to a type's
     // `FromStr` impl if given a string, and to the type's `Deserialize` impl if
@@ -62,6 +69,7 @@ pub struct Payload {
     pub extract: Option<String>,
     pub install: Option<String>,
     pub update: Option<String>,
+    pub src: Option<SourceTarget>,
     pub exec: Executable,
     pub menu: Option<Menu>,
 }
@@ -88,6 +96,7 @@ mod parse_tests {
                 resource: Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
                 install: None,
                 update: None,
+                src: None,
                 extract: None,
  exec: Executable::Run("**/firefox".to_string()),
                 menu: None
@@ -118,6 +127,7 @@ mod parse_tests {
                 resource: Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
                 install: Some("./GitAhead*.sh --include-subdir".to_string()),
                 update: None,
+                src: None,
                 extract: None,
  exec: Executable::Run("**/firefox".to_string()),
                 menu: Some(Menu {
@@ -157,6 +167,7 @@ mod parse_tests {
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,
+            src: None,
             extract: None,
             exec: Executable::Command {
                 run: "**/GitAhead".to_string(),
@@ -246,6 +257,7 @@ mod from_reader_tests {
             }),
             install: Some("./GitAhead*.sh --include-subdir".to_string()),
             update: None,
+            src: None,
             extract: None,
             exec: Executable::Command {
                 run: "**/GitAhead".to_string(),

@@ -3,6 +3,7 @@ use std::fs;
 use crate::hooks::extract::*;
 use crate::hooks::install::*;
 use crate::hooks::resource::*;
+use crate::hooks::src::*;
 use crate::lib::config::*;
 use crate::lib::paths::*;
 use crate::lib::shimmer::*;
@@ -53,6 +54,21 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
                     persist_shim(run, &shim_content)?;
                 };
             }
+        };
+    }
+
+    // source scripts
+    if let Some(src_files) = &payload.src {
+        // set wd to payload config dir
+        let current_install_dir = get_payload_current_install_dir_path(payload)?;
+        assert!(std::env::set_current_dir(&current_install_dir).is_ok());
+
+        match src_files {
+            SourceTarget::Single(target) => {
+                let src_target = vec![target.to_owned()];
+                src(&src_target)?;
+            }
+            SourceTarget::Multiple(targets) => src(targets)?,
         };
     }
 
