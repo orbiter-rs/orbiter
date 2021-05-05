@@ -1,9 +1,0 @@
-- id: gitahead
-  download:
-    repo: gitahead/gitahead
-  post_download: "./GitAhead*.sh --include-subdir"
-  exec:
-    run: "**/GitAhead"
-    alias: gitahead
-
-

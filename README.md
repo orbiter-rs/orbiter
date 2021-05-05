@@ -2,7 +2,7 @@
 
 > A cross-shell plugin and package manager, heavily inspired by zinit
 
-### Example config
+### Example ~/.orbiter.config.yml
 
 ```yaml
 
@@ -16,16 +16,6 @@
     icon: firefox
     menu_name: Firefox
 
-- id: edge-dev
-  resource: https://go.microsoft.com/fwlink/?linkid=2124602
-  extract: "ar xv *.deb; tar xvf data.tar.*"
-  exec: "**/msedge-dev/msedge"
-  launcher:
-    name: edge-dev
-    exec: "env LIBVA_DRIVER_NAME=iHD $(readlink -f msedge-dev/msedge) --enable-features=UseOzonePlatform --ozone-platform=wayland %U"
-    icon: microsoft-edge-dev
-    menu_name: edge-dev
-
 - id: tmux
   resource:
     repo: tmux/tmux
@@ -36,14 +26,30 @@
 - id: neovim
   resource:
     repo: neovim/neovim
-    binary_pattern: "*.tar.gz"
+    is_release: true
   extract: "tar xvf *.tar.*"
-  exec: "**/nvim*/bin/nvim"
+  exec: "**/bin/nvim"
 
+- id: exa
+  resource:
+    repo: ogham/exa
+    is_release: true
+  extract: "unzip *.zip"
+  exec: "**/exa"
+
+- id: zellij
+  resource:
+    repo: zellij-org/zellij
+    is_release: true
+  extract: "tar xvf *.tar.*"
+  exec: "**/zellij"
 
 ```
 
 ### Order of Execution
 
-Order of execution of related hooks: `install`/`update` -> `extract` -> `make` -> `install` -> `(plugin script loading)` -> `src` -> `multisrc` -> `load`.
+(If not already exist: `clone`/`update` (if not exist) -> `extract` -> `install`)
+
+`(plugin script loading)` -> `src` -> `multisrc` -> `load`
+
 
