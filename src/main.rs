@@ -5,7 +5,6 @@ use crate::lib::process::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let payloads = get_payloads()?;
-    // println!("{:?}", payloads);
     payloads.iter().for_each(|payload| {
         let result = process_payload(&payload);
         match &result {

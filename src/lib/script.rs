@@ -12,7 +12,6 @@ pub fn run_cmd(full_cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
         .output()
         .expect("Failed to execute command");
 
-    // println!("status: {}", output.status);
     io::stdout().write_all(&output.stdout).unwrap();
     io::stderr().write_all(&output.stderr).unwrap();
 

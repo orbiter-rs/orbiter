@@ -222,8 +222,6 @@ fn clone_and_checkout_repo(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let repo_name = clone_repo(&payload_config_dir, &repo)?;
     let resource_path = payload_config_dir.join(&repo_name);
-    println!("repo_name {:?}", &repo_name);
-    println!("resource_path {:?}", &resource_path);
     set_resource_as_current(&resource_path, &current_install_dir)?;
 
     // checkout branch/tag
@@ -238,9 +236,6 @@ fn clone_and_checkout_repo(
 pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(&payload)?;
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
-    println!("payload_config_dir {:?}", &payload_config_dir);
-    println!("current_install_dir {:?}", &current_install_dir);
-    println!("payload {:?}", &payload);
 
     match &payload.resource {
         Resource::Repo(repo) => {
@@ -248,7 +243,6 @@ pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>>
                 if is_release {
                     // repo release
                     let url = get_repo_release_asset_url(&repo)?;
-                    println!("url {:?}", &url);
                     get_asset(&payload_config_dir, &current_install_dir, &url)?;
                 } else {
                     clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
