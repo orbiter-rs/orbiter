@@ -70,6 +70,7 @@ pub struct Payload {
     pub install: Option<String>,
     pub update: Option<String>,
     pub src: Option<SourceTarget>,
+    pub load: Option<String>,
     pub exec: Executable,
     pub menu: Option<Menu>,
 }

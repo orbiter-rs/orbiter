@@ -66,11 +66,19 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         match src_files {
             SourceTarget::Single(target) => {
                 let src_target = vec![target.to_owned()];
-                println!("src_target {:?}", src_target);
                 src(&src_target)?;
             }
             SourceTarget::Multiple(targets) => src(targets)?,
         };
+    }
+
+    // post load
+    if let Some(load_script) = &payload.load {
+        // set wd to payload config dir
+        let current_install_dir = get_payload_current_install_dir_path(payload)?;
+        assert!(std::env::set_current_dir(&current_install_dir).is_ok());
+
+        println!("{}", &load_script);
     }
 
     Ok(())
