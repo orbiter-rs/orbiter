@@ -186,8 +186,10 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
 
         if os_arch_matched_assets.len() > 0usize {
             os_arch_matched_assets
-        } else {
+        } else if os_matched_assets.len() > 0usize {
             os_matched_assets
+        } else {
+            assets.into_iter().collect()
         }
     };
 

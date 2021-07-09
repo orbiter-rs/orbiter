@@ -1,4 +1,3 @@
-use crate::lib::script::*;
 use std::fs;
 
 pub fn src(files: &Vec<String>) -> Result<(), Box<dyn std::error::Error>> {

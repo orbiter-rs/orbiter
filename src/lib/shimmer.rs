@@ -37,13 +37,22 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
     let globbed = glob(&bin_dir)?
         .next()
         .ok_or(format!("unable to locate {}", bin_dir))??;
-    let mut resolved_bin_dir = fs::canonicalize(&globbed).unwrap();
-    resolved_bin_dir.pop();
+    let mut resolved_bin_path = fs::canonicalize(&globbed).unwrap();
+    // set exec mode
+    run_cmd(&format!(
+        "chmod +x {}",
+        &resolved_bin_path.display().to_string()
+    ))?;
+
+    //
+    resolved_bin_path.pop();
+    let bin_dir = resolved_bin_path.to_str().unwrap();
+
     Ok(format!(
         r##"
 #!/bin/sh
 
-{func}() {{
+{internal_func}() {{
     local bindir="{bin_dir}"
 
 
@@ -52,10 +61,11 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
 
 }}
 
-{func} "$@"
+{internal_func} "$@"
 "##,
         func = func_name,
-        bin_dir = resolved_bin_dir.to_str().unwrap()
+        internal_func = func_name.replace("-", "_"),
+        bin_dir = bin_dir
     ))
 }
 
