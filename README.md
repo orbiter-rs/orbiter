@@ -19,7 +19,7 @@
 - id: tmux
   resource:
     repo: tmux/tmux
-    ver: "3.1c"
+    ver: "3.2a"
   install: "./autogen.sh; ./configure; make;"
   exec: "**/tmux"
 
@@ -43,6 +43,15 @@
     is_release: true
   extract: "tar xvf *.tar.*"
   exec: "**/zellij"
+
+- id: direnv
+  resource:
+    repo: direnv/direnv
+    is_release: true
+  install: "mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh"
+  src: zhook.zsh
+  load: export DIRENV_LOG_FORMAT=""
+  exec: "**/direnv"
 
 ```
 
