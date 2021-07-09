@@ -71,7 +71,7 @@ pub struct Payload {
     pub update: Option<String>,
     pub src: Option<SourceTarget>,
     pub load: Option<String>,
-    pub exec: Executable,
+    pub exec: Option<Executable>,
     pub menu: Option<Menu>,
 }
 
@@ -99,7 +99,8 @@ mod parse_tests {
                 update: None,
                 src: None,
                 extract: None,
- exec: Executable::Run("**/firefox".to_string()),
+                load: None,
+                exec: Some( Executable::Run("**/firefox".to_string())),
                 menu: None
             }
         ];
@@ -130,7 +131,8 @@ mod parse_tests {
                 update: None,
                 src: None,
                 extract: None,
- exec: Executable::Run("**/firefox".to_string()),
+                load: None,
+                exec: Some(Executable::Run("**/firefox".to_string())),
                 menu: Some(Menu {
                     menu_name: "Firefox".to_string(),
                     name: Some("firefox".to_string()),
@@ -170,10 +172,11 @@ mod parse_tests {
             update: None,
             src: None,
             extract: None,
-            exec: Executable::Command {
+            load: None,
+            exec: Some(Executable::Command {
                 run: "**/GitAhead".to_string(),
                 alias: Some("gitahead".to_string()),
-            },
+            }),
             menu: None,
         }];
 
@@ -260,10 +263,11 @@ mod from_reader_tests {
             update: None,
             src: None,
             extract: None,
-            exec: Executable::Command {
+            load: None,
+            exec: Some(Executable::Command {
                 run: "**/GitAhead".to_string(),
                 alias: Some("gitahead".to_string()),
-            },
+            }),
             menu: None,
         }];
 

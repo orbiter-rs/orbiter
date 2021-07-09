@@ -39,21 +39,23 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         }
 
         // create shim
-        match &payload.exec {
-            Executable::Run(cmd) => {
-                let shim_content = get_shim(&cmd, &cmd, None)?;
-                persist_shim(&cmd, &shim_content)?;
-            }
+        if let Some(exec) = &payload.exec {
+            match exec {
+                Executable::Run(cmd) => {
+                    let shim_content = get_shim(&cmd, &cmd, None)?;
+                    persist_shim(&cmd, &shim_content)?;
+                }
 
-            Executable::Command { run, alias } => {
-                if let Some(alias) = alias.as_ref() {
-                    let shim_content = get_shim(run, alias, None)?;
-                    persist_shim(alias, &shim_content)?;
-                } else {
-                    let shim_content = get_shim(run, run, None)?;
-                    persist_shim(run, &shim_content)?;
-                };
-            }
+                Executable::Command { run, alias } => {
+                    if let Some(alias) = alias.as_ref() {
+                        let shim_content = get_shim(run, alias, None)?;
+                        persist_shim(alias, &shim_content)?;
+                    } else {
+                        let shim_content = get_shim(run, run, None)?;
+                        persist_shim(run, &shim_content)?;
+                    };
+                }
+            };
         };
     }
 
