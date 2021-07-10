@@ -12,6 +12,7 @@ use std::fs;
 use std::fs::{rename, File};
 use std::io;
 use std::path::Path;
+use std::path::PathBuf;
 use uname::uname;
 
 const DEFAULT_PROVIDER: &str = "github";
@@ -19,7 +20,7 @@ const DEFAULT_PROVIDER: &str = "github";
 fn move_resource_to_current_dir(
     resource_path: &Path,
     payload_current_install_dir: &Path,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let resource_name = Path::new(&resource_path)
         .file_name()
         .and_then(OsStr::to_str)
@@ -32,7 +33,7 @@ fn move_resource_to_current_dir(
     // move file/dir to dest
     rename(&resource_path, &dest)?;
 
-    Ok(())
+    Ok(dest)
 }
 
 fn set_resource_as_current(
@@ -200,7 +201,7 @@ fn get_asset(
     payload_config_dir: &Path,
     current_install_dir: &Path,
     url: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::builder().timeout(None).build()?;
     let res = client.get(url).send()?;
     let mut dest = {
@@ -212,9 +213,9 @@ fn get_asset(
     let file_content = res.bytes()?;
     io::copy(&mut file_content.as_ref(), &mut dest.0)?;
 
-    move_resource_to_current_dir(&dest.1, &current_install_dir)?;
+    let dest_path = move_resource_to_current_dir(&dest.1, &current_install_dir)?;
 
-    Ok(())
+    Ok(dest_path)
 }
 
 fn clone_and_checkout_repo(
@@ -235,28 +236,30 @@ fn clone_and_checkout_repo(
     Ok(())
 }
 
-pub fn get_resource(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
+pub fn get_resource(payload: &Payload) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(&payload)?;
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
-    match &payload.resource {
+    let asset_path = match &payload.resource {
         Resource::Repo(repo) => {
             if let Some(is_release) = repo.is_release {
                 if is_release {
                     // repo release
                     let url = get_repo_release_asset_url(&repo)?;
-                    get_asset(&payload_config_dir, &current_install_dir, &url)?;
+                    Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
                 } else {
                     clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
-                };
+                    None
+                }
             } else {
                 clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+                None
             }
         }
         Resource::Location(url) => {
-            get_asset(&payload_config_dir, &current_install_dir, &url)?;
+            Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
         }
     };
 
-    Ok(())
+    Ok(asset_path)
 }

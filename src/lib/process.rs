@@ -14,27 +14,21 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     if !payload_orbiter_dir_path.exists() {
         fs::create_dir_all(&payload_orbiter_dir_path)?;
         // save resource
-        get_resource(payload)?;
+        let resource_path = get_resource(payload)?;
+
+        // set wd to payload current dir
+        let current_install_dir = get_payload_current_install_dir_path(payload)?;
+        assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
         // extract resource
         if let Some(extract_cmd) = &payload.extract {
-            // set wd to payload config dir
-            let current_install_dir = get_payload_current_install_dir_path(payload)?;
-            assert!(std::env::set_current_dir(&current_install_dir).is_ok());
-
             extract(&extract_cmd)?;
+        } else if let Some(asset_path) = &resource_path {
+            extract_asset(&asset_path)?;
         }
-
-        // set wd to payload dir
-        let payload_dir = get_payload_dir_path(payload)?;
-        assert!(std::env::set_current_dir(&payload_dir).is_ok());
 
         // install resource
         if let Some(install_cmd) = &payload.install {
-            // set wd to payload config dir
-            let current_install_dir = get_payload_current_install_dir_path(payload)?;
-            assert!(std::env::set_current_dir(&current_install_dir).is_ok());
-
             install(&install_cmd)?;
         }
 
