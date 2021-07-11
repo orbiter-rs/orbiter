@@ -1,6 +1,7 @@
 use std::fs;
 
 use crate::hooks::extract::*;
+use crate::hooks::init::*;
 use crate::hooks::install::*;
 use crate::hooks::resource::*;
 use crate::hooks::src::*;
@@ -13,8 +14,15 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
     if !payload_orbiter_dir_path.exists() {
         fs::create_dir_all(&payload_orbiter_dir_path)?;
+
+        let init_result = if let Some(init_cmd) = &payload.init {
+            Some(init(init_cmd)?)
+        } else {
+            None
+        };
+
         // save resource
-        let resource_path = get_resource(payload)?;
+        let resource_path = get_adaptive_resource(payload, init_result.as_deref())?;
 
         // set wd to payload current dir
         let current_install_dir = get_payload_current_install_dir_path(payload)?;
@@ -24,12 +32,14 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         if let Some(extract_cmd) = &payload.extract {
             extract(&extract_cmd)?;
         } else if let Some(asset_path) = &resource_path {
-            extract_asset(&asset_path)?;
+            if asset_path.extension().is_some() {
+                extract_asset(&asset_path)?;
+            }
         }
 
         // install resource
         if let Some(install_cmd) = &payload.install {
-            install(&install_cmd)?;
+            install(install_cmd)?;
         }
 
         // create shim

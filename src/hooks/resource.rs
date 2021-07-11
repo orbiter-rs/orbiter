@@ -236,28 +236,125 @@ fn clone_and_checkout_repo(
     Ok(())
 }
 
-pub fn get_resource(payload: &Payload) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+fn get_resource_repo(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    repo: &Repo,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    let asset_path = if let Some(is_release) = repo.is_release {
+        if is_release {
+            // repo release
+            let url = get_repo_release_asset_url(&repo)?;
+            Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
+        } else {
+            clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+            None
+        }
+    } else {
+        clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+        None
+    };
+
+    Ok(asset_path)
+}
+
+fn get_resource_location(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    url: &str,
+    init_result: Option<&str>,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    let asset_path = if let Some(init) = init_result {
+        let location = url.replace("{init}", init);
+        Some(get_asset(
+            &payload_config_dir,
+            &current_install_dir,
+            &location,
+        )?)
+    } else {
+        Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
+    };
+
+    Ok(asset_path)
+}
+
+pub fn get_resource(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    resource: &Resource,
+    init_result: Option<&str>,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    match &resource {
+        Resource::Repo(repo) => get_resource_repo(&payload_config_dir, &current_install_dir, repo),
+        Resource::Location(url) => {
+            get_resource_location(&payload_config_dir, &current_install_dir, &url, init_result)
+        }
+    }
+}
+
+pub fn get_adaptive_resource(
+    payload: &Payload,
+    init_result: Option<&str>,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
     let payload_config_dir = get_payload_config_dir_path(&payload)?;
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
     let asset_path = match &payload.resource {
-        Resource::Repo(repo) => {
-            if let Some(is_release) = repo.is_release {
-                if is_release {
-                    // repo release
-                    let url = get_repo_release_asset_url(&repo)?;
-                    Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
-                } else {
-                    clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+        AdaptiveResource::Repo(repo) => {
+            get_resource_repo(&payload_config_dir, &current_install_dir, repo)?
+        }
+        AdaptiveResource::Location(url) => {
+            get_resource_location(&payload_config_dir, &current_install_dir, url, init_result)?
+        }
+        AdaptiveResource::OSSpecific {
+            linux,
+            macos,
+            windows,
+        } => {
+            let os = std::env::consts::OS;
+            match os {
+                "linux" => {
+                    if let Some(resource) = &linux {
+                        get_resource(
+                            &payload_config_dir,
+                            &current_install_dir,
+                            &resource,
+                            init_result,
+                        )?
+                    } else {
+                        None
+                    }
+                }
+                "macos" => {
+                    if let Some(resource) = &macos {
+                        get_resource(
+                            &payload_config_dir,
+                            &current_install_dir,
+                            &resource,
+                            init_result,
+                        )?
+                    } else {
+                        None
+                    }
+                }
+                "windows" => {
+                    if let Some(resource) = &windows {
+                        get_resource(
+                            &payload_config_dir,
+                            &current_install_dir,
+                            &resource,
+                            init_result,
+                        )?
+                    } else {
+                        None
+                    }
+                }
+                _ => {
+                    println!("unsupported os os={}", os);
+
                     None
                 }
-            } else {
-                clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
-                None
             }
-        }
-        Resource::Location(url) => {
-            Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
         }
     };
 

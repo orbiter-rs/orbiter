@@ -5,7 +5,6 @@ use std::io::Read;
 use serde::Deserialize;
 use serde::Serialize;
 
-// mod paths;
 use crate::lib::paths::*;
 
 pub fn from_reader(reader: &mut dyn Read) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
@@ -37,6 +36,25 @@ pub enum Resource {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+pub enum AdaptiveResource {
+    Location(String),
+    Repo(Repo),
+    OSSpecific {
+        linux: Option<Resource>,
+        macos: Option<Resource>,
+        windows: Option<Resource>,
+    },
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct OSSpecificResource {
+    linux: Option<Resource>,
+    macos: Option<Resource>,
+    windows: Option<Resource>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Executable {
     Run(String),
     Command { run: String, alias: Option<String> },
@@ -58,6 +76,28 @@ pub enum SourceTarget {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AdaptiveInstall {
+    Run(String),
+    OSSpecific {
+        linux: Option<String>,
+        macos: Option<String>,
+        windows: Option<String>,
+    },
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AdaptiveInit {
+    Run(String),
+    OSSpecific {
+        linux: Option<String>,
+        macos: Option<String>,
+        windows: Option<String>,
+    },
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Payload {
     // The `string_or_struct` function delegates deserialization to a type's
     // `FromStr` impl if given a string, and to the type's `Deserialize` impl if
@@ -65,9 +105,10 @@ pub struct Payload {
     // `Build`) so it can be reused for any field that implements both `FromStr`
     // and `Deserialize`.
     pub id: Option<String>,
-    pub resource: Resource,
+    pub init: Option<AdaptiveInit>,
+    pub resource: AdaptiveResource,
     pub extract: Option<String>,
-    pub install: Option<String>,
+    pub install: Option<AdaptiveInstall>,
     pub update: Option<String>,
     pub src: Option<SourceTarget>,
     pub load: Option<String>,
@@ -94,7 +135,8 @@ mod parse_tests {
         let expected = vec![
             Payload {
                 id: None,
-                resource: Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
+                init: None,
+                resource: AdaptiveResource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
                 install: None,
                 update: None,
                 src: None,
@@ -126,8 +168,9 @@ mod parse_tests {
         let expected = vec![
             Payload {
                 id: Some("ff-dev".to_string()),
-                resource: Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
-                install: Some("./GitAhead*.sh --include-subdir".to_string()),
+                init: None,
+                resource: AdaptiveResource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
+                install: Some(AdaptiveInstall::Run("./GitAhead*.sh --include-subdir".to_string()) ),
                 update: None,
                 src: None,
                 extract: None,
@@ -161,14 +204,17 @@ mod parse_tests {
         let actual: Vec<Payload> = parse(config).unwrap();
         let expected = vec![Payload {
             id: Some("gitahead".to_string()),
-            resource: Resource::Repo(Repo {
+            init: None,
+            resource: AdaptiveResource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
                 is_release: None,
                 binary_pattern: None,
             }),
-            install: Some("./GitAhead*.sh --include-subdir".to_string()),
+            install: Some(AdaptiveInstall::Run(
+                "./GitAhead*.sh --include-subdir".to_string(),
+            )),
             update: None,
             src: None,
             extract: None,
@@ -198,7 +244,7 @@ mod parse_tests {
         let expected = "*.tar.gz";
 
         let actual_resource = &actual.first().unwrap().resource;
-        if let Resource::Repo(rel) = actual_resource {
+        if let AdaptiveResource::Repo(rel) = actual_resource {
             assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected)
         } else {
             panic!("No binary_pattern")
@@ -252,14 +298,17 @@ mod from_reader_tests {
         let actual: Vec<Payload> = from_reader(&mut bufreader).unwrap();
         let expected = vec![Payload {
             id: Some("gitahead".to_string()),
-            resource: Resource::Repo(Repo {
+            init: None,
+            resource: AdaptiveResource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
                 is_release: None,
                 binary_pattern: None,
             }),
-            install: Some("./GitAhead*.sh --include-subdir".to_string()),
+            install: Some(AdaptiveInstall::Run(
+                "./GitAhead*.sh --include-subdir".to_string(),
+            )),
             update: None,
             src: None,
             extract: None,

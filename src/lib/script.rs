@@ -1,8 +1,8 @@
 // run shell script in subshell
 
 use std::env;
-use std::io::{self, Write};
 use std::process::{Command, Output};
+use std::str;
 
 pub fn run_cmd(full_cmd: &str) -> Result<Output, Box<dyn std::error::Error>> {
     let dflt_shell = env::var("SHELL")?;
@@ -12,11 +12,13 @@ pub fn run_cmd(full_cmd: &str) -> Result<Output, Box<dyn std::error::Error>> {
 }
 
 #[allow(dead_code)]
-pub fn run_cmd_with_output(full_cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run_cmd_with_output(full_cmd: &str) -> Result<String, Box<dyn std::error::Error>> {
     let proc = run_cmd(full_cmd)?;
 
-    io::stdout().write_all(&proc.stdout).unwrap();
-    io::stderr().write_all(&proc.stderr).unwrap();
+    let stdout_content = str::from_utf8(&proc.stdout).unwrap_or("");
+    let stderr_content = str::from_utf8(&proc.stderr).unwrap_or("");
 
-    Ok(())
+    let output = format!("{}{}", stdout_content, stderr_content);
+
+    Ok(output)
 }

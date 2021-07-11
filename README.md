@@ -25,21 +25,13 @@
 
 - id: ff-dev
   resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
+  extract: "tar xvf *.tar.*"
   exec: "**/firefox/firefox"
   launcher:
     name: firefox
     exec: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
     icon: firefox
     menu_name: Firefox
-
-- id: edge-dev
-  resource: https://go.microsoft.com/fwlink/?linkid=2124602
-  exec: "**/msedge-dev/msedge"
-  launcher:
-    name: edge-dev
-    exec: "env LIBVA_DRIVER_NAME=iHD $(readlink -f msedge-dev/msedge) --enable-features=UseOzonePlatform --ozone-platform=wayland %U"
-    icon: microsoft-edge-dev
-    menu_name: edge-dev
 
 - id: tmux
   resource:
@@ -52,6 +44,7 @@
   resource:
     repo: neovim/neovim
     is_release: true
+  extract: "tar xvf *.tar.*"
   exec: "**/bin/nvim"
 
 - id: vim-plug
@@ -63,12 +56,14 @@
   resource:
     repo: ogham/exa
     is_release: true
+  extract: "unzip *.zip"
   exec: "**/exa"
 
 - id: zellij
   resource:
     repo: zellij-org/zellij
     is_release: true
+  extract: "tar xvf *.tar.*"
   exec: "**/zellij"
 
 - id: direnv
@@ -84,32 +79,47 @@
   resource:
     repo: cli/cli
     is_release: true
+  extract: "tar xvf *.*gz"
   exec: "**/gh"
 
 - id: exercism
   resource:
     repo: exercism/cli
     is_release: true
+  extract: "tar xvf *.*gz"
   exec: "**/exercism"
 
 - id: dprint
   resource:
     repo: dprint/dprint
     is_release: true
+  extract: "tar xvf *.*gz"
   exec: "**/dprint"
 
 - id: fzf
   resource:
     repo: junegunn/fzf-bin
     is_release: true
+  extract: "tar xvf *.*gz"
   exec: "**/fzf"
+
+
+- id: kubectl
+  init: "curl -L -s https://dl.k8s.io/release/stable.txt"
+  resource:
+    macos: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/darwin/amd64/kubectl
+    linux: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/linux/amd64/kubectl
+  install: "chmod +x ./kubectl; ./kubectl completion zsh > zsh_completion.zsh"
+  src: zsh_completion.zsh
+  exec: kubectl
+
 
 
 ```
 
 ### Order of Execution
 
-(If not already exist: `clone`/`update`  -> `extract` (supports auto extraction of "zip", "tar.gz", "deb") -> `install`)
+(If not already exist: `init` -> `clone`/`update`  -> `extract` (supports auto extraction of "zip", "tar.gz", "deb") -> `install`)
 
 `(plugin script loading)` -> `src` -> `multisrc` -> `load`
 
