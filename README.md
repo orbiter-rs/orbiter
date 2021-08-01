@@ -1,17 +1,11 @@
 # orbiter
 
 > A cross-shell plugin and package manager, heavily inspired by zinit
+Supports only macos, linux atm, Windows support planned
 
 ### Example ~/.orbiter.config.yml
 
 ```yaml
-
-- id: diff-so-fancy
-  resource:
-    repo: so-fancy/diff-so-fancy
-    is_release: true
-  install: "git config --global core.pager \"diff-so-fancy | less --tabs=4 -RFX\"; git config --global interactive.diffFilter \"diff-so-fancy --patch\""
-  exec: "**/diff-so-fancy"
 
 - id: oh-my-tmux
   resource:
@@ -25,7 +19,6 @@
 
 - id: ff-dev
   resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
-  extract: "tar xvf *.tar.*"
   exec: "**/firefox/firefox"
   launcher:
     name: firefox
@@ -44,26 +37,87 @@
   resource:
     repo: neovim/neovim
     is_release: true
-  extract: "tar xvf *.tar.*"
   exec: "**/bin/nvim"
+  load: "export VISUAL=nvim; export EDITOR=\"$VISUAL\"; alias vi=\"$VISUAL\""
 
 - id: vim-plug
   resource:
     repo: junegunn/vim-plug
   install: "mkdir -p ~/.local/share/nvim/site/autoload;  ln -sf \"$PWD/plug.vim\" ~/.local/share/nvim/site/autoload/plug.vim"
 
+- id: ripgrep
+  resource:
+    repo: BurntSushi/ripgrep
+    is_release: true
+  exec: "**/rg"
+
+- id: zoxide
+  resource:
+    repo: ajeetdsouza/zoxide
+    is_release: true
+  exec: "**/zoxide"
+  install: "**/zoxide init zsh > init-zoxide.zsh"
+  src: "init-zoxide.zsh"
+
+- id: fd
+  resource:
+    repo: sharkdp/fd
+    is_release: true
+  exec: "**/fd"
+  load: "alias find='fd'"
+
+- id: gitui
+  resource:
+    repo: extrawurst/gitui
+    is_release: true
+  exec: "**/gitui"
+
+- id: delta
+  resource:
+    repo: dandavison/delta
+    is_release: true
+  exec: "**/delta"
+  install: |
+    git config --global pager.diff delta
+    git config --global pager.log delta
+    git config --global pager.reflog delta
+    git config --global pager.show delta
+    git config --global interactive.diffFilter "delta --color-only --features=interactive"
+    git config --global delta.features decorations
+    git config --global delta.interactive.keep-plus-minus-markers false
+    git config --global delta.decorations.commit-decoration-style "blue ol"
+    git config --global delta.decorations.commit-style raw
+    git config --global delta.decorations.file-style omit
+    git config --global delta.decorations.hunk-header-decoration-style blue box
+    git config --global delta.decorations.hunk-header-file-style red
+    git config --global delta.decorations.hunk-header-line-number-style "#067a00"
+    git config --global delta.decorations.hunk-header-style "file line-number syntax"
+
 - id: exa
   resource:
     repo: ogham/exa
     is_release: true
-  extract: "unzip *.zip"
   exec: "**/exa"
+  load: "alias ls=\"exa --icons --color always\"; alias ll='ls -la'"
+
+- id: bat
+  resource:
+    repo: sharkdp/bat
+    is_release: true
+  exec: "**/bat"
+  load: "alias cat=bat"
+
+- id: bottom
+  resource:
+    repo: clementtsang/bottom
+    is_release: true
+  exec: "**/btm"
+  load: "alias top=btm"
 
 - id: zellij
   resource:
     repo: zellij-org/zellij
     is_release: true
-  extract: "tar xvf *.tar.*"
   exec: "**/zellij"
 
 - id: direnv
@@ -79,28 +133,24 @@
   resource:
     repo: cli/cli
     is_release: true
-  extract: "tar xvf *.*gz"
   exec: "**/gh"
 
 - id: exercism
   resource:
     repo: exercism/cli
     is_release: true
-  extract: "tar xvf *.*gz"
   exec: "**/exercism"
 
 - id: dprint
   resource:
     repo: dprint/dprint
     is_release: true
-  extract: "tar xvf *.*gz"
   exec: "**/dprint"
 
 - id: fzf
   resource:
     repo: junegunn/fzf-bin
     is_release: true
-  extract: "tar xvf *.*gz"
   exec: "**/fzf"
 
 
@@ -113,6 +163,31 @@
   src: zsh_completion.zsh
   exec: kubectl
 
+- id: minikube
+  resource:
+    macos: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64
+    linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  install: "chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh"
+  src: zsh_completion.zsh
+  exec: minikube
+
+- id: zsh-autosuggestions
+  resource:
+    repo: zsh-users/zsh-autosuggestions
+  src: zsh-autosuggestions.zsh
+
+- id: ohmyzsh
+  resource:
+    repo: ohmyzsh/ohmyzsh
+  src:
+    - lib/completion.zsh
+    - plugins/git/git.plugin.zsh
+  load: "unalias grv g"
+
+- id: fast-syntax-highlighting
+  resource:
+    repo: zdharma/fast-syntax-highlighting
+  src: fast-syntax-highlighting.plugin.zsh
 
 
 ```
