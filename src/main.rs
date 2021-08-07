@@ -13,5 +13,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
+    // replace with stub
+    println!("autoload -Uz compinit");
+    println!("compinit");
+
     Ok(())
 }
