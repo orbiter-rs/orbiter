@@ -32,9 +32,7 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         if let Some(extract_cmd) = &payload.extract {
             extract(&extract_cmd)?;
         } else if let Some(asset_path) = &resource_path {
-            if asset_path.extension().is_some() {
-                extract_asset(&asset_path)?;
-            }
+            extract_asset(&asset_path)?;
         }
 
         // install resource
