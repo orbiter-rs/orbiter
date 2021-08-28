@@ -161,11 +161,15 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
         .send()?;
     let release: Vec<GitHubRelease> = res.json()?;
     let assets = &release.first().unwrap().assets;
+    let filtered_assets: Vec<&GitHubReleaseAsset> = assets
+        .into_iter()
+        .filter(|asset| !asset.name.ends_with("sha256"))
+        .collect();
 
     let matched_assets = if let Some(binary_pattern) = &repo.binary_pattern {
         let re = Regex::new(&binary_pattern)?;
 
-        let binary_pattern_matched_assets: Vec<&GitHubReleaseAsset> = assets
+        let binary_pattern_matched_assets: Vec<&GitHubReleaseAsset> = filtered_assets
             .into_iter()
             .filter(|asset| re.is_match(&asset.name))
             .collect();
@@ -173,7 +177,7 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
         binary_pattern_matched_assets
     } else {
         let re_os = get_binary_pattern_by_os()?;
-        let os_matched_assets: Vec<&GitHubReleaseAsset> = assets
+        let os_matched_assets: Vec<&GitHubReleaseAsset> = filtered_assets
             .into_iter()
             .filter(|asset| re_os.is_match(&asset.name))
             .collect();

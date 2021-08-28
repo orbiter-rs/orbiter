@@ -45,6 +45,14 @@ Supports only macos, linux atm, Windows support planned
     repo: junegunn/vim-plug
   install: "mkdir -p ~/.local/share/nvim/site/autoload;  ln -sf \"$PWD/plug.vim\" ~/.local/share/nvim/site/autoload/plug.vim"
 
+- id: starship
+  resource:
+    repo: starship/starship
+    is_release: true
+  exec: "**/starship"
+  install: "**/starship init zsh > init-starship.zsh"
+  src: "init-starship.zsh"
+
 - id: ripgrep
   resource:
     repo: BurntSushi/ripgrep
@@ -58,6 +66,7 @@ Supports only macos, linux atm, Windows support planned
   exec: "**/zoxide"
   install: "**/zoxide init zsh > init-zoxide.zsh"
   src: "init-zoxide.zsh"
+  load: "alias cd=z"
 
 - id: fd
   resource:
@@ -153,6 +162,12 @@ Supports only macos, linux atm, Windows support planned
     is_release: true
   exec: "**/fzf"
 
+- id: aws-vault
+  resource:
+    repo: 99designs/aws-vault
+    is_release: true
+  exec: "**/aws-vault"
+
 
 - id: kubectl
   init: "curl -L -s https://dl.k8s.io/release/stable.txt"
@@ -181,6 +196,7 @@ Supports only macos, linux atm, Windows support planned
     repo: ohmyzsh/ohmyzsh
   src:
     - lib/completion.zsh
+    - lib/git.zsh
     - plugins/git/git.plugin.zsh
   load: "unalias grv g"
 

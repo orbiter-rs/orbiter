@@ -26,13 +26,7 @@ pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>
                     asset_path_string
                 ))?;
             }
-            _ => {
-                println!(
-                    "unsupported archive ext={} path={}",
-                    kind.extension(),
-                    asset_path_string
-                );
-            }
+            _ => {}
         }
     } else if let Some(ext) = &asset_path.extension() {
         println!("ext {:?}", ext);
@@ -58,13 +52,7 @@ pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>
                     asset_path_string
                 ))?;
             }
-            _ => {
-                // println!(
-                //     "unsupported archive ext={} path={}",
-                //     &ext.to_str().unwrap(),
-                //     asset_path_string
-                // );
-            }
+            _ => {}
         }
     }
 
