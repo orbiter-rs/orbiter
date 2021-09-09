@@ -2,6 +2,7 @@ use crate::lib::config::*;
 use crate::lib::paths::*;
 use crate::lib::script::*;
 use regex::Regex;
+use regex::RegexBuilder;
 use reqwest::header::CONTENT_DISPOSITION;
 use reqwest::Url;
 use reqwest::{self};
