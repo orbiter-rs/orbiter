@@ -196,14 +196,14 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
         let os_matched_assets = filtered_assets
             .clone()
             .into_iter()
-            .filter(|asset| re_os.is_match(&asset.name))
+            .filter(|asset| re_os.is_match(&asset.name.to_lowercase()))
             .collect::<Vec<&GitHubReleaseAsset>>();
 
         let re_arch = get_binary_pattern_by_arch()?;
-        let os_arch_matched_assets = filtered_assets
+        let os_arch_matched_assets = os_matched_assets
             .clone()
             .into_iter()
-            .filter(|asset| re_arch.is_match(&asset.name))
+            .filter(|asset| re_arch.is_match(&asset.name.to_lowercase()))
             .collect::<Vec<&GitHubReleaseAsset>>();
 
         println!("os_matched={:?}", &os_matched_assets);
