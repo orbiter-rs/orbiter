@@ -1,91 +1,64 @@
 # orbiter
 
 > A cross-shell plugin and package manager, heavily inspired by zinit
-Supports only macos, linux atm, Windows support planned
+> Supports only macos, linux atm, Windows support planned
 
 ### Example ~/.orbiter.config.yml
 
 ```yaml
-
-- id: oh-my-tmux
-  resource:
-    repo: gpakosz/.tmux
-  install: "ln -sf $PWD/.tmux.conf $HOME/.tmux.conf"
-
-- id: tpm
-  resource:
-    repo: tmux-plugins/tpm
-  install: "mkdir -p ~/.tmux/plugins; ln -sf $PWD/ $HOME/.tmux/plugins/tpm"
-
-- id: ff-dev
-  resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
-  exec: "**/firefox/firefox"
-  launcher:
-    name: firefox
-    exec: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
-    icon: firefox
-    menu_name: Firefox
-
-- id: tmux
-  resource:
-    repo: tmux/tmux
-    ver: "3.2a"
-  install: "./autogen.sh; ./configure; make;"
-  exec: "**/tmux"
-
 - id: neovim
   resource:
     repo: neovim/neovim
     is_release: true
-  exec: "**/bin/nvim"
-  load: "export VISUAL=nvim; export EDITOR=\"$VISUAL\"; alias vi=\"$VISUAL\""
+  exec: '**/bin/nvim'
+  load: 'export VISUAL=nvim; export EDITOR="$VISUAL"; alias vi="$VISUAL"'
 
 - id: vim-plug
   resource:
     repo: junegunn/vim-plug
-  install: "mkdir -p ~/.local/share/nvim/site/autoload;  ln -sf \"$PWD/plug.vim\" ~/.local/share/nvim/site/autoload/plug.vim"
+  install: 'mkdir -p ~/.local/share/nvim/site/autoload;  ln -sf "$PWD/plug.vim" ~/.local/share/nvim/site/autoload/plug.vim'
 
 - id: starship
   resource:
     repo: starship/starship
     is_release: true
-  exec: "**/starship"
-  install: "**/starship init zsh > init-starship.zsh"
-  src: "init-starship.zsh"
+  exec: '**/starship'
+  install: '**/starship init zsh > init-starship.zsh'
+  src: 'init-starship.zsh'
 
 - id: ripgrep
   resource:
     repo: BurntSushi/ripgrep
     is_release: true
-  exec: "**/rg"
+  exec: '**/rg'
 
 - id: zoxide
   resource:
     repo: ajeetdsouza/zoxide
     is_release: true
-  exec: "**/zoxide"
-  install: "**/zoxide init zsh > init-zoxide.zsh"
-  src: "init-zoxide.zsh"
-  load: "alias cd=z"
+  exec: '**/zoxide'
+  install: '**/zoxide init zsh > init-zoxide.zsh'
+  src: 'init-zoxide.zsh'
+  load: 'alias cd=z'
 
 - id: fd
   resource:
     repo: sharkdp/fd
     is_release: true
-  exec: "**/fd"
+  exec: '**/fd'
   load: "alias find='fd'"
 
 - id: gitui
   resource:
     repo: extrawurst/gitui
     is_release: true
-  exec: "**/gitui"
+  exec: '**/gitui'
 
 - id: delta
   resource:
     repo: dandavison/delta
     is_release: true
-  exec: "**/delta"
+  exec: '**/delta'
   install: |
     git config --global pager.diff delta
     git config --global pager.log delta
@@ -106,75 +79,68 @@ Supports only macos, linux atm, Windows support planned
   resource:
     repo: ogham/exa
     is_release: true
-  exec: "**/exa"
-  load: "alias ls=\"exa --icons --color always\"; alias ll='ls -la'"
+  exec: '**/exa'
+  load: 'alias ls="exa --icons --color always"; alias ll=''ls -la'''
 
 - id: bat
   resource:
     repo: sharkdp/bat
     is_release: true
-  exec: "**/bat"
-  load: "alias cat=bat"
+  exec: '**/bat'
+  load: 'alias cat=bat'
 
 - id: bottom
   resource:
     repo: clementtsang/bottom
     is_release: true
-  exec: "**/btm"
-  load: "alias top=btm"
+  exec: '**/btm'
+  load: 'alias top=btm'
 
 - id: zellij
   resource:
     repo: zellij-org/zellij
     is_release: true
-  exec: "**/zellij"
+  exec: '**/zellij'
 
 - id: direnv
   resource:
     repo: direnv/direnv
     is_release: true
-  install: "mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh"
+  install: 'mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh'
   src: zhook.zsh
   load: export DIRENV_LOG_FORMAT=""
-  exec: "**/direnv"
+  exec: '**/direnv'
 
 - id: gh
   resource:
     repo: cli/cli
     is_release: true
-  exec: "**/gh"
+  exec: '**/gh'
 
 - id: exercism
   resource:
     repo: exercism/cli
     is_release: true
-  exec: "**/exercism"
+  exec: '**/exercism'
 
 - id: dprint
   resource:
     repo: dprint/dprint
     is_release: true
-  exec: "**/dprint"
+  exec: '**/dprint'
 
 - id: fzf
   resource:
     repo: junegunn/fzf-bin
     is_release: true
-  exec: "**/fzf"
-
-- id: aws-vault
-  resource:
-    repo: 99designs/aws-vault
-    is_release: true
-  exec: "**/aws-vault"
-
+  exec: '**/fzf'
 
 - id: kubectl
-  init: "curl -L -s https://dl.k8s.io/release/stable.txt"
+  init: 'curl -L -s https://dl.k8s.io/release/stable.txt'
   resource:
     macos: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/darwin/amd64/kubectl
     linux: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/linux/amd64/kubectl
-  install: "chmod +x ./kubectl; ./kubectl completion zsh > zsh_completion.zsh"
+  install: 'chmod +x ./kubectl; ./kubectl completion zsh > zsh_completion.zsh'
   src: zsh_completion.zsh
   exec: kubectl
 
@@ -182,7 +148,7 @@ Supports only macos, linux atm, Windows support planned
   resource:
     macos: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64
     linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-  install: "chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh"
+  install: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
   src: zsh_completion.zsh
   exec: minikube
 
@@ -191,27 +157,14 @@ Supports only macos, linux atm, Windows support planned
     repo: zsh-users/zsh-autosuggestions
   src: zsh-autosuggestions.zsh
 
-- id: ohmyzsh
-  resource:
-    repo: ohmyzsh/ohmyzsh
-  src:
-    - lib/completion.zsh
-    - lib/git.zsh
-    - plugins/git/git.plugin.zsh
-  load: "unalias grv g"
-
 - id: fast-syntax-highlighting
   resource:
-    repo: zdharma/fast-syntax-highlighting
-  src: fast-syntax-highlighting.plugin.zsh
-
-
+    repo: z-shell/F-Sy-H
+  src: f-sy-h.plugin.zsh
 ```
 
 ### Order of Execution
 
-(If not already exist: `init` -> `clone`/`update`  -> `extract` (supports auto extraction of "zip", "tar.gz", "deb") -> `install`)
+(If not already exist: `init` -> `clone`/`update` -> `extract` (supports auto extraction of "zip", "tar.gz", "deb") -> `install`)
 
 `(plugin script loading)` -> `src` -> `multisrc` -> `load`
-
-

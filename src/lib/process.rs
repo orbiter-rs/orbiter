@@ -13,6 +13,10 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     // check if already worked on
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
     if !payload_orbiter_dir_path.exists() {
+        println!(
+            "Creating payload config directory {}",
+            payload_orbiter_dir_path.to_str().unwrap()
+        );
         fs::create_dir_all(&payload_orbiter_dir_path)?;
 
         let init_result = if let Some(init_cmd) = &payload.init {

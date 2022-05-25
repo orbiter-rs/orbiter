@@ -2,7 +2,6 @@ use crate::lib::config::*;
 use crate::lib::paths::*;
 use crate::lib::script::*;
 use regex::Regex;
-use regex::RegexBuilder;
 use reqwest::header::CONTENT_DISPOSITION;
 use reqwest::Url;
 use reqwest::{self};
@@ -133,6 +132,7 @@ fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Erro
     let arch_regex = match machine_arch.as_ref() {
         "x86_64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
         "amd64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
+        "arm64" => Regex::new(r"(arm64|aarch64)")?,
         _ => todo!(),
     };
 
@@ -160,36 +160,54 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
         .header("Accept", "*/*")
         .header("User-Agent", "orbiter/0.1.0")
         .send()?;
-    let release: Vec<GitHubRelease> = res.json()?;
-    let assets = &release.first().unwrap().assets;
-    let filtered_assets: Vec<&GitHubReleaseAsset> = assets
-        .into_iter()
-        .filter(|asset| !asset.name.ends_with("sha256"))
-        .collect();
+
+    let releases: Vec<GitHubRelease> = res.json()?;
 
     let matched_assets = if let Some(binary_pattern) = &repo.binary_pattern {
         let re = Regex::new(&binary_pattern)?;
 
-        let binary_pattern_matched_assets: Vec<&GitHubReleaseAsset> = filtered_assets
+        let assets = &releases.first().unwrap().assets;
+
+        let filtered_assets = assets
+            .into_iter()
+            .filter(|asset| !asset.name.contains("sha256"))
+            .collect::<Vec<&GitHubReleaseAsset>>();
+        let binary_pattern_matched_assets = filtered_assets
             .into_iter()
             .filter(|asset| re.is_match(&asset.name))
-            .collect();
+            .collect::<Vec<&GitHubReleaseAsset>>();
 
         binary_pattern_matched_assets
     } else {
         let re_os = get_binary_pattern_by_os()?;
-        let os_matched_assets: Vec<&GitHubReleaseAsset> = filtered_assets
+        let filtered_releases = releases
+            .as_slice()
+            .into_iter()
+            .filter(|release| !release.tag_name.contains("nightly"))
+            .collect::<Vec<&GitHubRelease>>();
+
+        let assets = &filtered_releases.first().unwrap().assets;
+
+        let filtered_assets = assets
+            .into_iter()
+            .filter(|asset| !asset.name.contains("sha256"))
+            .collect::<Vec<&GitHubReleaseAsset>>();
+
+        let os_matched_assets = filtered_assets
+            .clone()
             .into_iter()
             .filter(|asset| re_os.is_match(&asset.name))
-            .collect();
+            .collect::<Vec<&GitHubReleaseAsset>>();
 
         let re_arch = get_binary_pattern_by_arch()?;
-        let os_arch_matched_assets: Vec<&GitHubReleaseAsset> = os_matched_assets
+        let os_arch_matched_assets = filtered_assets
             .clone()
             .into_iter()
             .filter(|asset| re_arch.is_match(&asset.name))
-            .collect();
+            .collect::<Vec<&GitHubReleaseAsset>>();
 
+        println!("os_matched={:?}", &os_matched_assets);
+        println!("arch_matched={:?}", &os_arch_matched_assets);
         if os_arch_matched_assets.len() > 0usize {
             os_arch_matched_assets
         } else if os_matched_assets.len() > 0usize {
