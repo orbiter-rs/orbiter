@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-jobs:      
+jobs:
   build:
     name: ${{ matrix.make.name }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -52,5 +52,33 @@ jobs:
 
       - name: Install cargo-make
         run: cargo install --debug cargo-make
+      - name: Cache cargo registry
+        uses: actions/cache@v2
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Save sccache
+        uses: actions/cache@v2
+        continue-on-error: false
+        with:
+          path: ${{ matrix.sccache-path }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-sccache-
+      - name: Start sccache server
+        run: sccache --start-server
+
       - name: Run ci-flow
         run: cargo make ci-flow
+
+      - name: Print sccache stats
+        run: sccache --show-stats
+      - name: Stop sccache server
+        run: sccache --stop-server || true
+
+
