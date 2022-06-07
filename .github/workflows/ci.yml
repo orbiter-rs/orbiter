@@ -73,8 +73,6 @@ jobs:
       - name: Run ci-flow
         run: cargo make ci-flow
 
-      - name: Print sccache stats
-        run: sccache --show-stats
       - name: Stop sccache server
         run: sccache --stop-server || true
 
