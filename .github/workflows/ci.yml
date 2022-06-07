@@ -70,9 +70,6 @@ jobs:
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
-      - name: Start sccache server
-        run: sccache --start-server
-
       - name: Run ci-flow
         run: cargo make ci-flow
 
