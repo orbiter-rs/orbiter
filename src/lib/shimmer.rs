@@ -56,7 +56,7 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
     local bindir="{bin_dir}"
 
 
-    local -x PATH="$bindir":"$PATH"
+    local PATH="$bindir":"$PATH"
     "$bindir"/"{func}" "$@"
 
 }}
