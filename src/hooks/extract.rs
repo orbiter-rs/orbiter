@@ -22,7 +22,7 @@ pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>
             }
             "deb" => {
                 run_cmd(&format!(
-                    "ar xv {}; ls *gz | xargs -n 1 tar xvf",
+                    "ar xv {}; ls *.tar.* | xargs -n 1 tar xvf",
                     asset_path_string
                 ))?;
             }
