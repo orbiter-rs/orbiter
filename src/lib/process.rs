@@ -9,11 +9,13 @@ use crate::lib::config::*;
 use crate::lib::paths::*;
 use crate::lib::shimmer::*;
 
+use log::info;
+
 pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
     // check if already worked on
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
     if !payload_orbiter_dir_path.exists() {
-        println!(
+        info!(
             "Creating payload config directory {}",
             payload_orbiter_dir_path.to_str().unwrap()
         );

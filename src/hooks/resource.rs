@@ -1,6 +1,7 @@
 use crate::lib::config::*;
 use crate::lib::paths::*;
 use crate::lib::script::*;
+use log::error;
 use regex::Regex;
 use reqwest::header::CONTENT_DISPOSITION;
 use reqwest::Url;
@@ -206,8 +207,6 @@ fn get_repo_release_asset_url(repo: &Repo) -> Result<String, Box<dyn std::error:
             .filter(|asset| re_arch.is_match(&asset.name.to_lowercase()))
             .collect::<Vec<&GitHubReleaseAsset>>();
 
-        println!("os_matched={:?}", &os_matched_assets);
-        println!("arch_matched={:?}", &os_arch_matched_assets);
         if os_arch_matched_assets.len() > 0usize {
             os_arch_matched_assets
         } else if os_matched_assets.len() > 0usize {
@@ -327,7 +326,7 @@ fn get_os_specific_resource(
         "macos" => &resource.macos,
         "windows" => &resource.windows,
         _ => {
-            println!("unsupported os os={}", os);
+            error!("unsupported os os={}", os);
 
             &None
         }
@@ -364,7 +363,7 @@ fn get_arch_specific_resource(
         "amd64" => &resource.amd64,
         "arm64" => &resource.arm64,
         _ => {
-            println!("Unsupported architecture: {}", machine_arch);
+            error!("Unsupported architecture: {}", machine_arch);
             &None
         }
     };

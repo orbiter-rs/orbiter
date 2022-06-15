@@ -1,4 +1,5 @@
 use crate::lib::{config::AdaptiveInit, script::*};
+use log::debug;
 
 pub fn init(adaptive_init: &AdaptiveInit) -> Result<String, Box<dyn std::error::Error>> {
     let init_result = match adaptive_init {
@@ -32,7 +33,7 @@ pub fn init(adaptive_init: &AdaptiveInit) -> Result<String, Box<dyn std::error::
                     }
                 }
                 _ => {
-                    println!("init hook: unsupported os os={}", os);
+                    debug!("init hook: unsupported os os={}", os);
                     "".to_owned()
                 }
             }
