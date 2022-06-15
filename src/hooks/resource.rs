@@ -315,6 +315,69 @@ pub fn get_resource(
     }
 }
 
+fn get_os_specific_resource(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    init_result: Option<&str>,
+    resource: &SupportedOSSpecificResource,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    let os = std::env::consts::OS;
+    let supported_os_specific_resource = match os {
+        "linux" => &resource.linux,
+        "macos" => &resource.macos,
+        "windows" => &resource.windows,
+        _ => {
+            println!("unsupported os os={}", os);
+
+            &None
+        }
+    };
+
+    let resource_path = if let Some(os_specific_resource) = supported_os_specific_resource {
+        match os_specific_resource {
+            OSSpecificResource::Standard(res) => {
+                get_resource(payload_config_dir, current_install_dir, &res, init_result)?
+            }
+            OSSpecificResource::ArchSpecific(res) => get_arch_specific_resource(
+                &payload_config_dir,
+                &current_install_dir,
+                init_result,
+                res,
+            )?,
+        }
+    } else {
+        None
+    };
+
+    Ok(resource_path)
+}
+
+fn get_arch_specific_resource(
+    payload_config_dir: &Path,
+    current_install_dir: &Path,
+    init_result: Option<&str>,
+    resource: &ArchSpecificResource,
+) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
+    let machine_arch = uname().unwrap().machine;
+    let supported_arch_specific_resource = match machine_arch.as_ref() {
+        "x86_64" => &resource.x86_64,
+        "amd64" => &resource.amd64,
+        "arm64" => &resource.arm64,
+        _ => {
+            println!("Unsupported architecture: {}", machine_arch);
+            &None
+        }
+    };
+
+    let resource_path = if let Some(res) = supported_arch_specific_resource {
+        get_resource(payload_config_dir, current_install_dir, &res, init_result)?
+    } else {
+        None
+    };
+
+    Ok(resource_path)
+}
+
 pub fn get_adaptive_resource(
     payload: &Payload,
     init_result: Option<&str>,
@@ -329,56 +392,12 @@ pub fn get_adaptive_resource(
         AdaptiveResource::Location(url) => {
             get_resource_location(&payload_config_dir, &current_install_dir, url, init_result)?
         }
-        AdaptiveResource::OSSpecific {
-            linux,
-            macos,
-            windows,
-        } => {
-            let os = std::env::consts::OS;
-            match os {
-                "linux" => {
-                    if let Some(resource) = &linux {
-                        get_resource(
-                            &payload_config_dir,
-                            &current_install_dir,
-                            &resource,
-                            init_result,
-                        )?
-                    } else {
-                        None
-                    }
-                }
-                "macos" => {
-                    if let Some(resource) = &macos {
-                        get_resource(
-                            &payload_config_dir,
-                            &current_install_dir,
-                            &resource,
-                            init_result,
-                        )?
-                    } else {
-                        None
-                    }
-                }
-                "windows" => {
-                    if let Some(resource) = &windows {
-                        get_resource(
-                            &payload_config_dir,
-                            &current_install_dir,
-                            &resource,
-                            init_result,
-                        )?
-                    } else {
-                        None
-                    }
-                }
-                _ => {
-                    println!("unsupported os os={}", os);
-
-                    None
-                }
-            }
-        }
+        AdaptiveResource::OSSpecific(os_specific_resource) => get_os_specific_resource(
+            &payload_config_dir,
+            &current_install_dir,
+            init_result,
+            os_specific_resource,
+        )?,
     };
 
     Ok(asset_path)

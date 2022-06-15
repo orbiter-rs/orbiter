@@ -39,18 +39,28 @@ pub enum Resource {
 pub enum AdaptiveResource {
     Location(String),
     Repo(Repo),
-    OSSpecific {
-        linux: Option<Resource>,
-        macos: Option<Resource>,
-        windows: Option<Resource>,
-    },
+    OSSpecific(SupportedOSSpecificResource),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct OSSpecificResource {
-    linux: Option<Resource>,
-    macos: Option<Resource>,
-    windows: Option<Resource>,
+pub struct SupportedOSSpecificResource {
+    pub linux: Option<OSSpecificResource>,
+    pub macos: Option<OSSpecificResource>,
+    pub windows: Option<OSSpecificResource>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OSSpecificResource {
+    Standard(Resource),
+    ArchSpecific(ArchSpecificResource),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ArchSpecificResource {
+    pub amd64: Option<Resource>,
+    pub x86_64: Option<Resource>,
+    pub arm64: Option<Resource>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -270,6 +280,41 @@ mod parse_tests {
         let expected = "tar xzf *.tar.gz";
 
         assert_eq!(actual.first().unwrap().extract.as_ref().unwrap(), expected)
+    }
+
+    #[test]
+    fn it_should_parse_arch() {
+        let config = r#"
+        - id: minikube
+          resource:
+            macos: 
+                arm64: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
+            linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          install: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
+          src: zsh_completion.zsh
+          exec: minikube
+        "#;
+
+        let actual: Vec<Payload> = parse(config).unwrap();
+        let actual_resource = &actual.first().unwrap().resource;
+        let expected =
+            "https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64";
+
+        if let AdaptiveResource::OSSpecific(os_specific) = actual_resource {
+            if let Some(macos_os_specific_resource) = &os_specific.macos {
+                if let OSSpecificResource::ArchSpecific(arch_specific_resource) =
+                    macos_os_specific_resource
+                {
+                    if let Some(arm64_arch_specific_resource) = &arch_specific_resource.arm64 {
+                        if let Resource::Location(location) = arm64_arch_specific_resource {
+                            assert_eq!(location, expected)
+                        } else {
+                            panic!("No location")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
