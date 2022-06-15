@@ -135,22 +135,12 @@
     is_release: true
   exec: '**/fzf'
 
-- id: kubectl
-  init: 'curl -L -s https://dl.k8s.io/release/stable.txt'
+- id: kind
   resource:
-    macos: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/darwin/amd64/kubectl
-    linux: https://storage.googleapis.com/kubernetes-release/release/{init}/bin/linux/amd64/kubectl
-  install: 'chmod +x ./kubectl; ./kubectl completion zsh > zsh_completion.zsh'
-  src: zsh_completion.zsh
-  exec: kubectl
-
-- id: minikube
-  resource:
-    macos: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64
-    linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-  install: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
-  src: zsh_completion.zsh
-  exec: minikube
+    repo: kubernetes-sigs/kind
+    is_release: true
+  install: 'mv ./kind* kind; chmod +x ./kind'
+  exec: kind
 
 - id: zsh-autosuggestions
   resource:
