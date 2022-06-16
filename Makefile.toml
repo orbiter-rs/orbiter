@@ -1,7 +1,13 @@
 [tasks.format]
 install_crate = "rustfmt"
 command = "cargo"
-args = ["fmt", "--", "--emit=files"]
+args = ["fmt", "--emit=files"]
+
+[tasks.lint]
+install_crate = "clippy"
+command = "cargo"
+# args = ["clippy", "-D", "warnings"]
+args = ["clippy"]
 
 [tasks.clean]
 command = "cargo"
@@ -9,8 +15,9 @@ args = ["clean"]
 
 [tasks.build]
 command = "cargo"
-args = ["build"]
+args = ["build", "--release"]
 dependencies = ["clean"]
+
 
 [tasks.test]
 command = "cargo"
@@ -19,7 +26,13 @@ dependencies = ["clean"]
 
 [tasks.ci-flow]
 dependencies = [
-    "format",
     "build",
     "test"
 ]
+
+[tasks.ci-flow-windows]
+dependencies = [
+    "build",
+    "test"
+]
+
