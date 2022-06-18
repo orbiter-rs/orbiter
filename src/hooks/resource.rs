@@ -8,13 +8,13 @@ use reqwest::Url;
 use reqwest::{self};
 use serde::Deserialize;
 use serde::Serialize;
+use std::env;
 use std::ffi::OsStr;
 use std::fs;
 use std::fs::{rename, File};
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
-use uname::uname;
 
 const DEFAULT_PROVIDER: &str = "github";
 
@@ -122,19 +122,18 @@ fn get_binary_pattern_by_os() -> Result<regex::Regex, Box<dyn std::error::Error>
         "linux" => Regex::new(r"(linux|linux-gnu)")?,
         "macos" => Regex::new(r"(darwin|mac|osx|os-x)")?,
         "windows" => Regex::new(r"(windows|cygwin|[-_]win|win64|win32)")?,
-        _ => todo!(),
+        _ => panic!("Unsupported os: {}", os),
     };
 
     Ok(os_regex)
 }
 
 fn get_binary_pattern_by_arch() -> Result<regex::Regex, Box<dyn std::error::Error>> {
-    let machine_arch = uname().unwrap().machine;
+    let machine_arch = env::consts::ARCH;
     let arch_regex = match machine_arch.as_ref() {
-        "x86_64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
-        "amd64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
-        "arm64" => Regex::new(r"(arm64|aarch64)")?,
-        _ => todo!(),
+        "x86_64" | "amd64" => Regex::new(r"(x86_64|amd64|intel|linux64)")?,
+        "arm64" | "aarch64" => Regex::new(r"(arm64|aarch64)")?,
+        _ => panic!("Unsupported architecture: {}", machine_arch),
     };
 
     Ok(arch_regex)
@@ -326,7 +325,7 @@ fn get_os_specific_resource(
         "macos" => &resource.macos,
         "windows" => &resource.windows,
         _ => {
-            error!("unsupported os os={}", os);
+            error!("unsupported os: {}", os);
 
             &None
         }
@@ -357,11 +356,10 @@ fn get_arch_specific_resource(
     init_result: Option<&str>,
     resource: &ArchSpecificResource,
 ) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
-    let machine_arch = uname().unwrap().machine;
+    let machine_arch = env::consts::ARCH;
     let supported_arch_specific_resource = match machine_arch.as_ref() {
-        "x86_64" => &resource.x86_64,
-        "amd64" => &resource.amd64,
-        "arm64" => &resource.arm64,
+        "x86_64" | "amd64" => &resource.x86_64,
+        "aarch64" | "arm64" => &resource.aarch64,
         _ => {
             error!("Unsupported architecture: {}", machine_arch);
             &None

@@ -58,9 +58,8 @@ pub enum OSSpecificResource {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ArchSpecificResource {
-    pub amd64: Option<Resource>,
     pub x86_64: Option<Resource>,
-    pub arm64: Option<Resource>,
+    pub aarch64: Option<Resource>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -288,7 +287,7 @@ mod parse_tests {
         - id: minikube
           resource:
             macos: 
-                arm64: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
+                aarch64: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
             linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
           install: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
           src: zsh_completion.zsh
@@ -305,8 +304,8 @@ mod parse_tests {
                 if let OSSpecificResource::ArchSpecific(arch_specific_resource) =
                     macos_os_specific_resource
                 {
-                    if let Some(arm64_arch_specific_resource) = &arch_specific_resource.arm64 {
-                        if let Resource::Location(location) = arm64_arch_specific_resource {
+                    if let Some(aarch64_arch_specific_resource) = &arch_specific_resource.aarch64 {
+                        if let Resource::Location(location) = aarch64_arch_specific_resource {
                             assert_eq!(location, expected)
                         } else {
                             panic!("No location")
