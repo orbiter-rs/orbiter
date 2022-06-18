@@ -16,7 +16,7 @@ args = ["clean"]
 [tasks.changelog]
 install_crate = "git-cliff"
 command = "git-cliff"
-args = ["--latest"]
+args = ["--verbose", "--current", "--output", "CHANGELOG.md"]
 
 [tasks.build]
 command = "cargo"
@@ -32,12 +32,21 @@ dependencies = ["clean"]
 dependencies = [
     "clippy",
     "build",
-    "test"
+    "test",
+    "changelog"
+]
+
+[tasks.ci-flow-ubuntu]
+dependencies = [
+    "build",
+    "test",
+    "changelog"
 ]
 
 [tasks.ci-flow-windows]
 dependencies = [
     "build",
-    "test"
+    "test",
+    "changelog"
 ]
 
