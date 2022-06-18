@@ -13,11 +13,15 @@ args = ["clippy"]
 command = "cargo"
 args = ["clean"]
 
+[tasks.changelog]
+install_crate = "git-cliff"
+command = "git-cliff"
+args = ["--latest"]
+
 [tasks.build]
 command = "cargo"
 args = ["build", "--release"]
 dependencies = ["clean"]
-
 
 [tasks.test]
 command = "cargo"
@@ -26,6 +30,7 @@ dependencies = ["clean"]
 
 [tasks.ci-flow]
 dependencies = [
+    "clippy",
     "build",
     "test"
 ]
