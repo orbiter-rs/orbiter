@@ -5,7 +5,7 @@ use std::io::Read;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::lib::paths::*;
+use super::paths::*;
 
 pub fn from_reader(reader: &mut dyn Read) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
     Ok(serde_yaml::from_reader(reader)?)

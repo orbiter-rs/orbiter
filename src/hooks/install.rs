@@ -1,4 +1,4 @@
-use crate::lib::{config::AdaptiveInstall, script::*};
+use crate::utils::{config::AdaptiveInstall, script::*};
 
 pub fn install(adaptive_install: &AdaptiveInstall) -> Result<(), Box<dyn std::error::Error>> {
     match adaptive_install {

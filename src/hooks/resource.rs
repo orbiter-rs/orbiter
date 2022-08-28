@@ -1,6 +1,7 @@
-use crate::lib::config::*;
-use crate::lib::paths::*;
-use crate::lib::script::*;
+use crate::utils::config::*;
+use crate::utils::paths::*;
+use crate::utils::script::*;
+
 use log::error;
 use regex::Regex;
 use reqwest::header::CONTENT_DISPOSITION;

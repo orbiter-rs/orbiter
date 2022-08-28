@@ -1,5 +1,5 @@
-use crate::lib::paths::*;
-use crate::lib::script::*;
+use crate::utils::paths::*;
+use crate::utils::script::*;
 use glob::glob;
 use std::ffi::OsStr;
 use std::fs;

@@ -1,4 +1,4 @@
-use crate::lib::{config::AdaptiveInit, script::*};
+use crate::utils::{config::AdaptiveInit, script::*};
 use log::debug;
 
 pub fn init(adaptive_init: &AdaptiveInit) -> Result<String, Box<dyn std::error::Error>> {

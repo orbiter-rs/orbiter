@@ -1,7 +1,7 @@
 use infer;
 use std::path::Path;
 
-use crate::lib::script::*;
+use crate::utils::script::*;
 
 pub fn extract(cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
     run_cmd(&cmd)?;

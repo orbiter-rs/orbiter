@@ -1,13 +1,13 @@
 use std::fs;
 
+use super::config::*;
+use super::paths::*;
+use super::shimmer::*;
 use crate::hooks::extract::*;
 use crate::hooks::init::*;
 use crate::hooks::install::*;
 use crate::hooks::resource::*;
 use crate::hooks::src::*;
-use crate::lib::config::*;
-use crate::lib::paths::*;
-use crate::lib::shimmer::*;
 
 use log::info;
 
