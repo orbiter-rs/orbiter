@@ -22,7 +22,7 @@ pub fn get_payloads() -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
 pub struct Repo {
     pub repo: String,
     pub provider: Option<String>,
-    pub is_release: Option<bool>,
+    pub from_release: Option<bool>,
     pub ver: Option<String>,
     pub binary_pattern: Option<String>,
 }
@@ -66,7 +66,11 @@ pub struct ArchSpecificResource {
 #[serde(untagged)]
 pub enum Executable {
     Run(String),
-    Command { run: String, alias: Option<String> },
+    Command {
+        run: String,
+        alias: Option<String>,
+        use_symlink: Option<bool>,
+    },
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -218,7 +222,7 @@ mod parse_tests {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
-                is_release: None,
+                from_release: None,
                 binary_pattern: None,
             }),
             install: Some(AdaptiveInstall::Run(
@@ -231,6 +235,7 @@ mod parse_tests {
             exec: Some(Executable::Command {
                 run: "**/GitAhead".to_string(),
                 alias: Some("gitahead".to_string()),
+                use_symlink: None,
             }),
             menu: None,
         }];
@@ -347,7 +352,7 @@ mod from_reader_tests {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
-                is_release: None,
+                from_release: None,
                 binary_pattern: None,
             }),
             install: Some(AdaptiveInstall::Run(
@@ -360,6 +365,7 @@ mod from_reader_tests {
             exec: Some(Executable::Command {
                 run: "**/GitAhead".to_string(),
                 alias: Some("gitahead".to_string()),
+                use_symlink: None,
             }),
             menu: None,
         }];

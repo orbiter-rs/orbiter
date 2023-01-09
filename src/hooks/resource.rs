@@ -263,8 +263,8 @@ fn get_resource_repo(
     current_install_dir: &Path,
     repo: &Repo,
 ) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
-    let asset_path = if let Some(is_release) = repo.is_release {
-        if is_release {
+    let asset_path = if let Some(from_release) = repo.from_release {
+        if from_release {
             // repo release
             let url = get_repo_release_asset_url(&repo)?;
             Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)

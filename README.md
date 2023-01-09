@@ -9,7 +9,7 @@
 - id: neovim
   resource:
     repo: neovim/neovim
-    is_release: true
+    from_release: true
   exec: '**/bin/nvim'
   load: 'export VISUAL=nvim; export EDITOR="$VISUAL"; alias vi="$VISUAL"'
 
@@ -21,7 +21,7 @@
 - id: starship
   resource:
     repo: starship/starship
-    is_release: true
+    from_release: true
   exec: '**/starship'
   install: '**/starship init zsh > init-starship.zsh'
   src: 'init-starship.zsh'
@@ -29,13 +29,13 @@
 - id: ripgrep
   resource:
     repo: BurntSushi/ripgrep
-    is_release: true
+    from_release: true
   exec: '**/rg'
 
 - id: zoxide
   resource:
     repo: ajeetdsouza/zoxide
-    is_release: true
+    from_release: true
   exec: '**/zoxide'
   install: '**/zoxide init zsh > init-zoxide.zsh'
   src: 'init-zoxide.zsh'
@@ -44,20 +44,20 @@
 - id: fd
   resource:
     repo: sharkdp/fd
-    is_release: true
+    from_release: true
   exec: '**/fd'
   load: "alias find='fd'"
 
 - id: gitui
   resource:
     repo: extrawurst/gitui
-    is_release: true
+    from_release: true
   exec: '**/gitui'
 
 - id: delta
   resource:
     repo: dandavison/delta
-    is_release: true
+    from_release: true
   exec: '**/delta'
   install: |
     git config --global pager.diff delta
@@ -78,34 +78,34 @@
 - id: exa
   resource:
     repo: ogham/exa
-    is_release: true
+    from_release: true
   exec: '**/exa'
   load: 'alias ls="exa --icons --color always"; alias ll=''ls -la'''
 
 - id: bat
   resource:
     repo: sharkdp/bat
-    is_release: true
+    from_release: true
   exec: '**/bat'
   load: 'alias cat=bat'
 
 - id: bottom
   resource:
     repo: clementtsang/bottom
-    is_release: true
+    from_release: true
   exec: '**/btm'
   load: 'alias top=btm'
 
 - id: zellij
   resource:
     repo: zellij-org/zellij
-    is_release: true
+    from_release: true
   exec: '**/zellij'
 
 - id: direnv
   resource:
     repo: direnv/direnv
-    is_release: true
+    from_release: true
   install: 'mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh'
   src: zhook.zsh
   load: export DIRENV_LOG_FORMAT=""
@@ -114,31 +114,31 @@
 - id: gh
   resource:
     repo: cli/cli
-    is_release: true
+    from_release: true
   exec: '**/gh'
 
 - id: exercism
   resource:
     repo: exercism/cli
-    is_release: true
+    from_release: true
   exec: '**/exercism'
 
 - id: dprint
   resource:
     repo: dprint/dprint
-    is_release: true
+    from_release: true
   exec: '**/dprint'
 
 - id: fzf
   resource:
     repo: junegunn/fzf-bin
-    is_release: true
+    from_release: true
   exec: '**/fzf'
 
 - id: kind
   resource:
     repo: kubernetes-sigs/kind
-    is_release: true
+    from_release: true
   install: 'mv ./kind* kind; chmod +x ./kind'
   exec: kind
 
