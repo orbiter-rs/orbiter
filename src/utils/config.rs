@@ -326,7 +326,6 @@ mod parse_tests {
 mod from_reader_tests {
     use super::*;
     use std::io::BufReader;
-    use stringreader::StringReader;
 
     #[test]
     fn it_should_parse_from_reader() {
@@ -341,7 +340,7 @@ mod from_reader_tests {
             alias: gitahead
         "#;
 
-        let streader = StringReader::new(config);
+        let streader = config.as_bytes();
         let mut bufreader = BufReader::new(streader);
 
         let actual: Vec<Payload> = from_reader(&mut bufreader).unwrap();
