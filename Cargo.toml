@@ -31,6 +31,7 @@ log = "0.4"
 env_logger = "0.9"
 
 tokio = "1.24.1"
+clap = { version = "4.2.1", features = ["derive"] }
 
 [dev-dependencies]
 

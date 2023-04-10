@@ -1,6 +1,7 @@
 use std::fs;
 use std::fs::File;
 use std::io;
+use std::path::PathBuf;
 
 use crate::utils::paths::*;
 use crate::utils::script::*;
@@ -54,10 +55,13 @@ pub fn get_basic_shim(func: &str, bin_dir: &str) -> Result<String, Box<dyn std::
     ))
 }
 
+fn get_shim_path(cmd: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    Ok(get_bin_file_path(&get_func_name(&cmd)?)?)
+}
+
 pub fn create_shim(cmd: &str, shim_content: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let shim_fname = get_func_name(&cmd)?;
     fs::create_dir_all(&get_bin_dir_path()?)?;
-    let shim_path = get_bin_file_path(&shim_fname)?;
+    let shim_path = get_shim_path(&cmd)?;
     let mut dest = File::create(&shim_path)?;
     io::copy(&mut shim_content.as_bytes(), &mut dest)?;
 
@@ -65,4 +69,8 @@ pub fn create_shim(cmd: &str, shim_content: &str) -> Result<(), Box<dyn std::err
     run_cmd(&format!("chmod +x {}", &shim_path.display().to_string()))?;
 
     Ok(())
+}
+
+pub fn remove_shim(cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(fs::remove_file(get_shim_path(&cmd)?)?)
 }

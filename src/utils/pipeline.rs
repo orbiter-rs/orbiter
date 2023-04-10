@@ -101,3 +101,28 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
 
     Ok(())
 }
+
+pub fn update_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
+    // 1. remove shim
+    if let Some(exec) = &payload.exec {
+        match exec {
+            Executable::Run(cmd) => {
+                remove_shim(&cmd)?;
+            }
+            Executable::Command { run, alias, .. } => {
+                if let Some(alias) = alias.as_ref() {
+                    remove_shim(alias)?;
+                } else {
+                    remove_shim(run)?;
+                }
+            }
+        };
+    };
+
+    // 2. rename current folder
+    let current_folder_path = get_payload_current_install_dir_path(&payload);
+
+    if (dirs.exists(current_folder_path)) {}
+    // 3. process payload (create new current folder)
+    Ok(())
+}
