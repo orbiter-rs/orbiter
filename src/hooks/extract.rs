@@ -1,30 +1,39 @@
 use infer;
 use std::path::Path;
 
-use crate::utils::script::*;
+use crate::utils::{script::*, shells::SupportedShell};
 
-pub fn extract(cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
-    run_cmd(&cmd)?;
+pub fn extract(
+    current_shell: &SupportedShell,
+    cmd: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    run_cmd(current_shell, &cmd)?;
 
     Ok(())
 }
 
-pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn extract_asset(
+    current_shell: &SupportedShell,
+    asset_path: &Path,
+) -> Result<(), Box<dyn std::error::Error>> {
     let asset_path_string = &asset_path.display().to_string();
     let infer_kind = infer::get_from_path(asset_path)?;
     if let Some(kind) = &infer_kind {
         match kind.extension() {
             "zip" => {
-                run_cmd(&format!("unzip {}", asset_path_string))?;
+                run_cmd(current_shell, &format!("unzip {}", asset_path_string))?;
             }
             "gz" => {
-                run_cmd(&format!("tar xvf {}", asset_path_string))?;
+                run_cmd(current_shell, &format!("tar xvf {}", asset_path_string))?;
             }
             "deb" => {
-                run_cmd(&format!(
-                    "ar xv {}; ls *.tar.* | xargs -n 1 tar xvf",
-                    asset_path_string
-                ))?;
+                run_cmd(
+                    current_shell,
+                    &format!(
+                        "ar xv {}; ls *.tar.* | xargs -n 1 tar xvf",
+                        asset_path_string
+                    ),
+                )?;
             }
             _ => {}
         }
@@ -32,8 +41,10 @@ pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>
         println!("ext {:?}", ext);
         match ext.to_str().unwrap() {
             "dmg" => {
-                run_cmd(&format!(
-                    r#"
+                run_cmd(
+                    current_shell,
+                    &format!(
+                        r#"
                     _extract_dmg() {{
                       local dmg_name="{}"
                       echo "dmg_name $dmg_name"
@@ -49,8 +60,9 @@ pub fn extract_asset(asset_path: &Path) -> Result<(), Box<dyn std::error::Error>
                     _extract_dmg
 
                     "#,
-                    asset_path_string
-                ))?;
+                        asset_path_string
+                    ),
+                )?;
             }
             _ => {}
         }

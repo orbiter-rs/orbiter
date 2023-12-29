@@ -6,5 +6,5 @@
 **/*.rs.bk
 
 
-// orbiter specific
+# orbiter specific
 orbiter.config.yml

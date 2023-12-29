@@ -1,12 +1,14 @@
+use std::env;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use super::config::*;
+use super::shells::SupportedShell;
 
 use glob::glob;
 
-pub const DEFAULT_ORBITER_CONFIG_HOME: &str = ".orbiter";
+pub const DEFAULT_ORBITER_HOME: &str = ".orbiter";
 pub const DEFAULT_ORBITER_PAYLOADS_HOME: &str = "payloads";
 pub const DEFAULT_ORBITER_PAYLOADS_CURRENT_INSTALL_HOME: &str = "current";
 pub const DEFAULT_ORBITER_DASHBOARD_HOME: &str = "dashboard";
@@ -14,29 +16,55 @@ pub const DEFAULT_ORBITER_DASHBOARD_BIN_HOME: &str = "bin";
 pub const DEFAULT_ORBITER_CONFIG_FILENAME: &str = ".orbiter.config.yml";
 pub const DEFAULT_ORBITER_PAYLOAD_CONFIG_DIR: &str = ".__orbiter__";
 
-// .orbiter.config.yml
-pub fn get_config_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let home_dir = dirs::home_dir();
-    let config_file_path = home_dir.unwrap().join(DEFAULT_ORBITER_CONFIG_FILENAME);
+pub const ORBITER_CONFIG_ENV_KEY: &str = "ORBITER_CONFIG";
+pub const ORBITER_HOME_ENV_KEY: &str = "ORBITER_HOME";
 
-    Ok(config_file_path)
+// .orbiter.config.yml
+fn get_dflt_config_path() -> PathBuf {
+    dirs::home_dir()
+        .unwrap()
+        .join(DEFAULT_ORBITER_CONFIG_FILENAME)
 }
 
-// .orbiter
-pub fn get_config_home_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let home_dir = dirs::home_dir();
-    let config_home = home_dir.unwrap().join(DEFAULT_ORBITER_CONFIG_HOME);
+pub fn get_config_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    Ok(match env::var(ORBITER_CONFIG_ENV_KEY) {
+        Ok(orbiter_config_envvar) => {
+            let path = Path::new(&orbiter_config_envvar);
+            if path.exists() {
+                path.to_path_buf()
+            } else {
+                get_dflt_config_path()
+            }
+        }
+        Err(_) => get_dflt_config_path(),
+    })
+}
 
-    Ok(config_home)
+// .orbiter/
+
+fn get_dflt_home_dir_path() -> PathBuf {
+    dirs::home_dir().unwrap().join(DEFAULT_ORBITER_HOME)
+}
+
+pub fn get_home_dir_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    Ok(match env::var(ORBITER_HOME_ENV_KEY) {
+        Ok(orbiter_config_envvar) => {
+            let path = Path::new(&orbiter_config_envvar);
+            if path.exists() {
+                path.to_path_buf()
+            } else {
+                get_dflt_home_dir_path()
+            }
+        }
+        Err(_) => get_dflt_home_dir_path(),
+    })
 }
 
 // .orbiter/payloads/<payload id>
 pub fn get_payload_dir_path(payload: &Payload) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let payload_dir = get_config_home_path()?
+    Ok(get_home_dir_path()?
         .join(DEFAULT_ORBITER_PAYLOADS_HOME)
-        .join(payload.id.as_ref().unwrap());
-
-    Ok(payload_dir)
+        .join(payload.id.as_ref().unwrap()))
 }
 
 // .orbiter/payloads/<payload id>/current
@@ -59,7 +87,7 @@ pub fn get_payload_config_dir_path(
 }
 
 pub fn get_bin_dir_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let bin_path = get_config_home_path()?
+    let bin_path = get_home_dir_path()?
         .join(DEFAULT_ORBITER_DASHBOARD_HOME)
         .join(DEFAULT_ORBITER_DASHBOARD_BIN_HOME);
 
@@ -98,4 +126,47 @@ pub fn get_dir(bin_path: &PathBuf) -> Result<PathBuf, Box<dyn std::error::Error>
     bin_path.pop(); // get parent dir path
 
     Ok(bin_path)
+}
+
+pub fn update_path(current_shell: &SupportedShell) {
+    match current_shell {
+        SupportedShell::Sh => export_path_sh(),
+        SupportedShell::Bash => export_path_sh(),
+        SupportedShell::Zsh => export_path_sh(),
+        SupportedShell::Fish => export_path_fish(),
+        SupportedShell::PowerShell => export_path_powershell(),
+        SupportedShell::WinCmd => export_path_wincmd(),
+    }
+}
+
+fn export_path_sh() {
+    // update PATH with orbiter dashboard bin dir
+    println!(
+        "export PATH=\"{}:$PATH\"",
+        get_bin_dir_path().unwrap().display()
+    );
+}
+
+fn export_path_fish() {
+    // update PATH with orbiter dashboard bin dir
+    println!(
+        "set -x PATH \"{}\" $PATH",
+        get_bin_dir_path().unwrap().display()
+    );
+}
+
+fn export_path_powershell() {
+    // update PATH with orbiter dashboard bin dir
+    println!(
+        "$env:PATH = \"{};$env:PATH\"",
+        get_bin_dir_path().unwrap().display()
+    );
+}
+
+fn export_path_wincmd() {
+    // update PATH with orbiter dashboard bin dir
+    println!(
+        "setx PATH \"{};%PATH%\"",
+        get_bin_dir_path().unwrap().display()
+    );
 }

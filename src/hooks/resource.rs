@@ -1,6 +1,7 @@
 use crate::utils::config::*;
 use crate::utils::paths::*;
 use crate::utils::script::*;
+use crate::utils::shells::SupportedShell;
 
 use log::error;
 use regex::Regex;
@@ -88,6 +89,7 @@ fn get_provider(repo_provider_type: &Option<String>) -> Result<String, Box<dyn s
 }
 
 fn clone_repo(
+    current_shell: &SupportedShell,
     payload_config_dir: &Path,
     repo: &Repo,
 ) -> Result<String, Box<dyn std::error::Error>> {
@@ -99,7 +101,7 @@ fn clone_repo(
     };
 
     assert!(std::env::set_current_dir(&payload_config_dir).is_ok());
-    run_cmd(&format!("git clone {}", &url))?;
+    run_cmd(current_shell, &format!("git clone {}", &url))?;
 
     get_resource_name_from_url(&url)
 }
@@ -241,24 +243,26 @@ fn get_asset(
 }
 
 fn clone_and_checkout_repo(
+    current_shell: &SupportedShell,
     repo: &Repo,
     payload_config_dir: &Path,
     current_install_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let repo_name = clone_repo(&payload_config_dir, &repo)?;
+    let repo_name = clone_repo(current_shell, &payload_config_dir, &repo)?;
     let resource_path = payload_config_dir.join(&repo_name);
     set_resource_as_current(&resource_path, &current_install_dir)?;
 
     // checkout branch/tag
     if let Some(ver) = &repo.ver {
         assert!(std::env::set_current_dir(&current_install_dir).is_ok());
-        run_cmd(&format!("git checkout -q {}", &ver))?;
+        run_cmd(current_shell, &format!("git checkout -q {}", &ver))?;
     };
 
     Ok(())
 }
 
 fn get_resource_repo(
+    current_shell: &SupportedShell,
     payload_config_dir: &Path,
     current_install_dir: &Path,
     repo: &Repo,
@@ -269,11 +273,21 @@ fn get_resource_repo(
             let url = get_repo_release_asset_url(&repo)?;
             Some(get_asset(&payload_config_dir, &current_install_dir, &url)?)
         } else {
-            clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+            clone_and_checkout_repo(
+                current_shell,
+                &repo,
+                &payload_config_dir,
+                &current_install_dir,
+            )?;
             None
         }
     } else {
-        clone_and_checkout_repo(&repo, &payload_config_dir, &current_install_dir)?;
+        clone_and_checkout_repo(
+            current_shell,
+            &repo,
+            &payload_config_dir,
+            &current_install_dir,
+        )?;
         None
     };
 
@@ -301,13 +315,19 @@ fn get_resource_location(
 }
 
 pub fn get_resource(
+    current_shell: &SupportedShell,
     payload_config_dir: &Path,
     current_install_dir: &Path,
     resource: &Resource,
     init_result: Option<&str>,
 ) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
     match &resource {
-        Resource::Repo(repo) => get_resource_repo(&payload_config_dir, &current_install_dir, repo),
+        Resource::Repo(repo) => get_resource_repo(
+            current_shell,
+            &payload_config_dir,
+            &current_install_dir,
+            repo,
+        ),
         Resource::Location(url) => {
             get_resource_location(&payload_config_dir, &current_install_dir, &url, init_result)
         }
@@ -315,6 +335,7 @@ pub fn get_resource(
 }
 
 fn get_os_specific_resource(
+    current_shell: &SupportedShell,
     payload_config_dir: &Path,
     current_install_dir: &Path,
     init_result: Option<&str>,
@@ -334,10 +355,15 @@ fn get_os_specific_resource(
 
     let resource_path = if let Some(os_specific_resource) = supported_os_specific_resource {
         match os_specific_resource {
-            OSSpecificResource::Standard(res) => {
-                get_resource(payload_config_dir, current_install_dir, &res, init_result)?
-            }
+            OSSpecificResource::Standard(res) => get_resource(
+                current_shell,
+                payload_config_dir,
+                current_install_dir,
+                &res,
+                init_result,
+            )?,
             OSSpecificResource::ArchSpecific(res) => get_arch_specific_resource(
+                current_shell,
                 &payload_config_dir,
                 &current_install_dir,
                 init_result,
@@ -352,10 +378,11 @@ fn get_os_specific_resource(
 }
 
 fn get_arch_specific_resource(
+    current_shell: &SupportedShell,
     payload_config_dir: &Path,
     current_install_dir: &Path,
     init_result: Option<&str>,
-    resource: &ArchSpecificResource,
+    resource: &SupportedArchSpecificResource,
 ) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
     let machine_arch = env::consts::ARCH;
     let supported_arch_specific_resource = match machine_arch.as_ref() {
@@ -368,7 +395,13 @@ fn get_arch_specific_resource(
     };
 
     let resource_path = if let Some(res) = supported_arch_specific_resource {
-        get_resource(payload_config_dir, current_install_dir, &res, init_result)?
+        get_resource(
+            current_shell,
+            payload_config_dir,
+            current_install_dir,
+            &res,
+            init_result,
+        )?
     } else {
         None
     };
@@ -377,6 +410,7 @@ fn get_arch_specific_resource(
 }
 
 pub fn get_adaptive_resource(
+    current_shell: &SupportedShell,
     payload: &Payload,
     init_result: Option<&str>,
 ) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
@@ -384,13 +418,19 @@ pub fn get_adaptive_resource(
     let current_install_dir = get_payload_current_install_dir_path(&payload)?;
 
     let asset_path = match &payload.resource {
-        AdaptiveResource::Repo(repo) => {
-            get_resource_repo(&payload_config_dir, &current_install_dir, repo)?
-        }
-        AdaptiveResource::Location(url) => {
-            get_resource_location(&payload_config_dir, &current_install_dir, url, init_result)?
-        }
+        AdaptiveResource::Standard(resource) => match resource {
+            Resource::Repo(repo) => get_resource_repo(
+                current_shell,
+                &payload_config_dir,
+                &current_install_dir,
+                repo,
+            )?,
+            Resource::Location(url) => {
+                get_resource_location(&payload_config_dir, &current_install_dir, url, init_result)?
+            }
+        },
         AdaptiveResource::OSSpecific(os_specific_resource) => get_os_specific_resource(
+            current_shell,
             &payload_config_dir,
             &current_install_dir,
             init_result,

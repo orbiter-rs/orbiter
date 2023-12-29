@@ -1,7 +1,9 @@
 use super::paths::*;
 use super::script::*;
+use super::shells::SupportedShell;
 
 pub fn create_symlink(
+    current_shell: &SupportedShell,
     file_path: &str,
     alias: &Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -13,10 +15,10 @@ pub fn create_symlink(
 
     let resolved_bin_path = resolve_single_path(file_path)?;
     // set exec mode
-    run_cmd(&format!(
-        "chmod +x {}",
-        &resolved_bin_path.display().to_string()
-    ))?;
+    run_cmd(
+        current_shell,
+        &format!("chmod +x {}", &resolved_bin_path.display().to_string()),
+    )?;
 
     println!(
         "ln -sf {} {}",

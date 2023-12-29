@@ -23,8 +23,10 @@
     repo: starship/starship
     from_release: true
   exec: '**/starship'
-  install: '**/starship init zsh > init-starship.zsh'
-  src: 'init-starship.zsh'
+  install:
+    zsh: '**/starship init zsh > init-starship.zsh'
+  src:
+    zsh: 'init-starship.zsh'
 
 - id: ripgrep
   resource:
@@ -37,8 +39,12 @@
     repo: ajeetdsouza/zoxide
     from_release: true
   exec: '**/zoxide'
-  install: '**/zoxide init zsh > init-zoxide.zsh'
-  src: 'init-zoxide.zsh'
+  install:
+    zsh: '**/zoxide init zsh > init-zoxide.zsh'
+    bash: '**/zoxide init bash > init-zoxide.bash'
+    fish: '**/zoxide init fish > init-zoxide.fish'
+  src:
+    zsh: 'init-zoxide.zsh'
   load: 'alias cd=z'
 
 - id: fd
@@ -106,8 +112,10 @@
   resource:
     repo: direnv/direnv
     from_release: true
-  install: 'mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh'
-  src: zhook.zsh
+  install:
+    zsh: 'mv direnv* direnv; chmod +x ./direnv; ./direnv hook zsh > zhook.zsh'
+  src:
+    zsh: zhook.zsh
   load: export DIRENV_LOG_FORMAT=""
   exec: '**/direnv'
 
@@ -145,12 +153,14 @@
 - id: zsh-autosuggestions
   resource:
     repo: zsh-users/zsh-autosuggestions
-  src: zsh-autosuggestions.zsh
+  src:
+    zsh: zsh-autosuggestions.zsh
 
 - id: fast-syntax-highlighting
   resource:
     repo: z-shell/F-Sy-H
-  src: f-sy-h.plugin.zsh
+  src:
+    zsh: f-sy-h.plugin.zsh
 ```
 
 ### Order of Execution

@@ -2,17 +2,22 @@ use std::fs;
 
 use super::config::*;
 use super::paths::*;
+use super::shells::SupportedShell;
 use super::shim::*;
 use super::symlink::*;
 use crate::hooks::extract::*;
 use crate::hooks::init::*;
 use crate::hooks::install::*;
+use crate::hooks::load::*;
 use crate::hooks::resource::*;
 use crate::hooks::src::*;
 
 use log::info;
 
-pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
+pub fn process_payload(
+    current_shell: &SupportedShell,
+    payload: &Payload,
+) -> Result<(), Box<dyn std::error::Error>> {
     // check if already worked on
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
     if !payload_orbiter_dir_path.exists() {
@@ -23,13 +28,13 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
         fs::create_dir_all(&payload_orbiter_dir_path)?;
 
         let init_result = if let Some(init_cmd) = &payload.init {
-            Some(init(init_cmd)?)
+            Some(init(current_shell, init_cmd)?)
         } else {
             None
         };
 
         // save resource
-        let resource_path = get_adaptive_resource(payload, init_result.as_deref())?;
+        let resource_path = get_adaptive_resource(current_shell, payload, init_result.as_deref())?;
 
         // set wd to payload current dir
         let current_install_dir = get_payload_current_install_dir_path(payload)?;
@@ -37,21 +42,25 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
 
         // extract resource
         if let Some(extract_cmd) = &payload.extract {
-            extract(&extract_cmd)?;
+            extract(current_shell, &extract_cmd)?;
         } else if let Some(asset_path) = &resource_path {
-            extract_asset(&asset_path)?;
+            extract_asset(current_shell, &asset_path)?;
         }
 
         // install resource
         if let Some(install_cmd) = &payload.install {
-            install(install_cmd)?;
+            install(current_shell, install_cmd)?;
         }
 
         // create shim
         if let Some(exec) = &payload.exec {
             match exec {
                 Executable::Run(cmd) => {
-                    create_shim(&cmd, &get_shim_content(&cmd, &cmd, None)?)?;
+                    create_shim(
+                        current_shell,
+                        &cmd,
+                        &get_shim_content(current_shell, &cmd, &cmd, None)?,
+                    )?;
                 }
 
                 Executable::Command {
@@ -61,13 +70,21 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
                 } => {
                     if let Some(is_use_symlink) = use_symlink {
                         if is_use_symlink.to_owned() {
-                            create_symlink(run, alias)?;
+                            create_symlink(current_shell, run, alias)?;
                         }
                     } else {
                         if let Some(alias) = alias.as_ref() {
-                            create_shim(alias, &get_shim_content(run, alias, None)?)?;
+                            create_shim(
+                                current_shell,
+                                alias,
+                                &get_shim_content(current_shell, run, alias, None)?,
+                            )?;
                         } else {
-                            create_shim(run, &get_shim_content(run, run, None)?)?;
+                            create_shim(
+                                current_shell,
+                                run,
+                                &get_shim_content(current_shell, run, run, None)?,
+                            )?;
                         };
                     };
                 }
@@ -76,27 +93,21 @@ pub fn process_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Erro
     }
 
     // source scripts
-    if let Some(src_files) = &payload.src {
+    if let Some(src_target) = &payload.src {
         // set wd to payload config dir
         let current_install_dir = get_payload_current_install_dir_path(payload)?;
         assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
-        match src_files {
-            SourceTarget::Single(target) => {
-                let src_target = vec![target.to_owned()];
-                src(&src_target)?;
-            }
-            SourceTarget::Multiple(targets) => src(targets)?,
-        };
+        src(current_shell, src_target)?;
     }
 
     // post load
-    if let Some(load_script) = &payload.load {
+    if let Some(load_cmd) = &payload.load {
         // set wd to payload config dir
         let current_install_dir = get_payload_current_install_dir_path(payload)?;
         assert!(std::env::set_current_dir(&current_install_dir).is_ok());
 
-        println!("{}", &load_script);
+        load(current_shell, load_cmd)?;
     }
 
     Ok(())
@@ -122,7 +133,6 @@ pub fn update_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error
     // 2. rename current folder
     let current_folder_path = get_payload_current_install_dir_path(&payload);
 
-    if (dirs.exists(current_folder_path)) {}
     // 3. process payload (create new current folder)
     Ok(())
 }

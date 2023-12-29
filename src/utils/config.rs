@@ -37,8 +37,7 @@ pub enum Resource {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AdaptiveResource {
-    Location(String),
-    Repo(Repo),
+    Standard(Resource),
     OSSpecific(SupportedOSSpecificResource),
 }
 
@@ -53,13 +52,44 @@ pub struct SupportedOSSpecificResource {
 #[serde(untagged)]
 pub enum OSSpecificResource {
     Standard(Resource),
-    ArchSpecific(ArchSpecificResource),
+    ArchSpecific(SupportedArchSpecificResource),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ArchSpecificResource {
+pub struct SupportedArchSpecificResource {
     pub x86_64: Option<Resource>,
     pub aarch64: Option<Resource>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SupportedOSSpecificCommand {
+    pub linux: Option<String>,
+    pub macos: Option<String>,
+    pub windows: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OSSpecificCommand {
+    Generic(String),
+    OSSpecific(SupportedOSSpecificCommand),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SupportedShellSpecificCommand {
+    pub sh: Option<OSSpecificCommand>,
+    pub zsh: Option<OSSpecificCommand>,
+    pub bash: Option<OSSpecificCommand>,
+    pub fish: Option<OSSpecificCommand>,
+    pub powershell: Option<OSSpecificCommand>,
+    pub wincmd: Option<OSSpecificCommand>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ShellSpecificCommand {
+    Generic(String),
+    ShellSpecific(SupportedShellSpecificCommand),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -89,26 +119,41 @@ pub enum SourceTarget {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SupportedShellSpecificSourceTarget {
+    pub sh: Option<SourceTarget>,
+    pub zsh: Option<SourceTarget>,
+    pub bash: Option<SourceTarget>,
+    pub fish: Option<SourceTarget>,
+    pub powershell: Option<SourceTarget>,
+    pub wincmd: Option<SourceTarget>,
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AdaptiveInstall {
-    Run(String),
-    OSSpecific {
-        linux: Option<String>,
-        macos: Option<String>,
-        windows: Option<String>,
-    },
+pub enum ShellSpecificSourceTarget {
+    Generic(SourceTarget),
+    ShellSpecific(SupportedShellSpecificSourceTarget),
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SupportedShellSpecificEvaluatable {
+    pub sh: Option<String>,
+    pub zsh: Option<String>,
+    pub bash: Option<String>,
+    pub fish: Option<String>,
+    pub powershell: Option<String>,
+    pub wincmd: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum AdaptiveInit {
-    Run(String),
-    OSSpecific {
-        linux: Option<String>,
-        macos: Option<String>,
-        windows: Option<String>,
-    },
+pub enum ShellSpecificEvaluatable {
+    Generic(String),
+    ShellSpecific(SupportedShellSpecificEvaluatable),
 }
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Payload {
@@ -118,13 +163,13 @@ pub struct Payload {
     // `Build`) so it can be reused for any field that implements both `FromStr`
     // and `Deserialize`.
     pub id: Option<String>,
-    pub init: Option<AdaptiveInit>,
+    pub init: Option<ShellSpecificCommand>,
     pub resource: AdaptiveResource,
-    pub extract: Option<String>,
-    pub install: Option<AdaptiveInstall>,
-    pub update: Option<String>,
-    pub src: Option<SourceTarget>,
-    pub load: Option<String>,
+    pub extract: Option<String>, // path to the file to be extracted
+    pub install: Option<ShellSpecificCommand>,
+    pub update: Option<ShellSpecificCommand>,
+    pub src: Option<ShellSpecificSourceTarget>,
+    pub load: Option<ShellSpecificEvaluatable>,
     pub exec: Option<Executable>,
     pub menu: Option<Menu>,
 }
@@ -149,7 +194,7 @@ mod parse_tests {
             Payload {
                 id: None,
                 init: None,
-                resource: AdaptiveResource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
+                resource: AdaptiveResource::Standard(Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string())),
                 install: None,
                 update: None,
                 src: None,
@@ -169,7 +214,9 @@ mod parse_tests {
         - id: ff-dev
           resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
           exec: "**/firefox"
-          install: "./GitAhead*.sh --include-subdir"
+          install: 
+            sh: 
+                macos: "./GitAhead*.sh --include-subdir"
           menu:
             name: firefox
             run: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
@@ -182,8 +229,15 @@ mod parse_tests {
             Payload {
                 id: Some("ff-dev".to_string()),
                 init: None,
-                resource: AdaptiveResource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string()),
-                install: Some(AdaptiveInstall::Run("./GitAhead*.sh --include-subdir".to_string()) ),
+                resource: AdaptiveResource::Standard(Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string())),
+                install: Some(ShellSpecificCommand::ShellSpecific(SupportedShellSpecificCommand{
+                        sh:Some( OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand{
+                            macos: Some("./GitAhead*.sh --include-subdir".to_string()), 
+                            linux: None, windows: None}, 
+                        )), 
+                        zsh: None, bash: None, fish: None, powershell: None, wincmd: None} 
+                    ),
+                ),
                 update: None,
                 src: None,
                 extract: None,
@@ -208,7 +262,9 @@ mod parse_tests {
         - id: gitahead
           resource:
             repo: gitahead/gitahead
-          install: ./GitAhead*.sh --include-subdir
+          install: 
+            sh: 
+              macos: './GitAhead*.sh --include-subdir'
           exec:
             run: '**/GitAhead'
             alias: gitahead
@@ -218,16 +274,20 @@ mod parse_tests {
         let expected = vec![Payload {
             id: Some("gitahead".to_string()),
             init: None,
-            resource: AdaptiveResource::Repo(Repo {
+            resource: AdaptiveResource::Standard(Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
                 from_release: None,
                 binary_pattern: None,
-            }),
-            install: Some(AdaptiveInstall::Run(
-                "./GitAhead*.sh --include-subdir".to_string(),
-            )),
+            })),
+            install: Some(ShellSpecificCommand::ShellSpecific(SupportedShellSpecificCommand{
+                sh: Some(OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand{ 
+                    macos: Some("./GitAhead*.sh --include-subdir".to_string()), 
+                    linux: None, windows: None })
+                ), 
+                zsh: None, bash: None, fish: None, powershell: None, wincmd: None
+            })),
             update: None,
             src: None,
             extract: None,
@@ -250,7 +310,7 @@ mod parse_tests {
           resource:
             repo: neovim/neovim
             binary_pattern: "*.tar.gz"
-          extract: "tar xvf *.tar.*"
+          extract: "*.tar.*"
           exec: "**/bin/nvim"
         "#;
 
@@ -258,11 +318,13 @@ mod parse_tests {
         let expected = "*.tar.gz";
 
         let actual_resource = &actual.first().unwrap().resource;
-        if let AdaptiveResource::Repo(rel) = actual_resource {
-            assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected)
-        } else {
-            panic!("No binary_pattern")
-        }
+        if let AdaptiveResource::Standard(res) = actual_resource {
+            if let Resource::Repo(rel) = res {
+                return assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected)
+            }
+        } 
+
+        panic!("No binary_pattern")
     }
 
     #[test]
@@ -270,9 +332,10 @@ mod parse_tests {
         let config = r#"
         - id: ff-dev
           resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
-          extract: "tar xzf *.tar.gz"
+          extract: "*.tar.gz"
           exec: "**/firefox"
-          install: "./GitAhead*.sh --include-subdir"
+          install: 
+            sh: "./GitAhead*.sh --include-subdir"
           menu:
             name: firefox
             run: "env GDK_BACKEND=wayland $(readlink -f firefox/firefox)"
@@ -281,9 +344,17 @@ mod parse_tests {
         "#;
 
         let actual: Vec<Payload> = parse(config).unwrap();
-        let expected = "tar xzf *.tar.gz";
+        let expected = "*.tar.gz";
 
-        assert_eq!(actual.first().unwrap().extract.as_ref().unwrap(), expected)
+        assert_eq!(
+            actual
+                .first()
+                .unwrap()
+                .extract
+                .as_ref()
+                .unwrap(),
+            expected
+        )
     }
 
     #[test]
@@ -294,7 +365,8 @@ mod parse_tests {
             macos: 
                 aarch64: https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
             linux: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          install: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
+          install: 
+            sh: 'chmod +x ./minikube; ./minikube completion zsh > zsh_completion.zsh'
           src: zsh_completion.zsh
           exec: minikube
         "#;
@@ -334,7 +406,9 @@ mod from_reader_tests {
         - id: gitahead
           resource:
             repo: gitahead/gitahead
-          install: ./GitAhead*.sh --include-subdir
+          install: 
+            sh: 
+              macos: './GitAhead*.sh --include-subdir'
           exec:
             run: '**/GitAhead'
             alias: gitahead
@@ -347,16 +421,20 @@ mod from_reader_tests {
         let expected = vec![Payload {
             id: Some("gitahead".to_string()),
             init: None,
-            resource: AdaptiveResource::Repo(Repo {
+            resource: AdaptiveResource::Standard(Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
                 provider: None,
                 ver: None,
                 from_release: None,
                 binary_pattern: None,
-            }),
-            install: Some(AdaptiveInstall::Run(
-                "./GitAhead*.sh --include-subdir".to_string(),
-            )),
+            })),
+            install:Some(ShellSpecificCommand::ShellSpecific( SupportedShellSpecificCommand {
+                sh: Some(OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand {
+                    macos: Some("./GitAhead*.sh --include-subdir".to_string()),
+                    linux: None, windows: None,
+                })),
+                zsh: None, bash: None, fish: None, powershell: None, wincmd: None, 
+            })),
             update: None,
             src: None,
             extract: None,

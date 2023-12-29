@@ -1,38 +1,13 @@
-use crate::utils::{config::AdaptiveInstall, script::*};
+use crate::utils::{config::ShellSpecificCommand, script::*, shells::SupportedShell};
 
-pub fn install(adaptive_install: &AdaptiveInstall) -> Result<(), Box<dyn std::error::Error>> {
-    match adaptive_install {
-        AdaptiveInstall::Run(cmd) => {
-            run_cmd_with_output(&cmd)?;
+pub fn install(
+    current_shell: &SupportedShell,
+    install_cmd: &ShellSpecificCommand,
+) -> Result<String, Box<dyn std::error::Error>> {
+    match install_cmd {
+        ShellSpecificCommand::Generic(generic) => run_cmd_with_output(current_shell, generic),
+        ShellSpecificCommand::ShellSpecific(shell_specific) => {
+            run_shell_cmd(current_shell, shell_specific)
         }
-        AdaptiveInstall::OSSpecific {
-            linux,
-            macos,
-            windows,
-        } => {
-            let os = std::env::consts::OS;
-            match os {
-                "linux" => {
-                    if let Some(cmd) = &linux {
-                        run_cmd(&cmd)?;
-                    }
-                }
-                "macos" => {
-                    if let Some(cmd) = &macos {
-                        run_cmd(&cmd)?;
-                    }
-                }
-                "windows" => {
-                    if let Some(cmd) = &windows {
-                        run_cmd(&cmd)?;
-                    }
-                }
-                _ => {
-                    println!("install hook: unsupported os os={}", os);
-                }
-            }
-        }
-    };
-
-    Ok(())
+    }
 }

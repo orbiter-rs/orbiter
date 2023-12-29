@@ -10,6 +10,11 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// update item(s)
-    Update { item: Option<String> },
+    Init {
+        shell: String,
+    },
+    Update {
+        item: Option<String>,
+    },
     // List,
 }
