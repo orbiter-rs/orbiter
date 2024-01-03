@@ -4,9 +4,7 @@ use std::error::Error;
 use std::process::{Command, Output};
 use std::str;
 
-use log::debug;
-
-use super::config::{OSSpecificCommand, SupportedOSSpecificCommand, SupportedShellSpecificCommand};
+use super::config::{OSSpecificCommand, SupportedShellSpecificCommand};
 use super::shells::SupportedShell;
 
 pub fn run_cmd(

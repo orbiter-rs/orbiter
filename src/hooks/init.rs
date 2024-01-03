@@ -1,8 +1,4 @@
-use crate::utils::{
-    config::{ShellSpecificCommand, SupportedShellSpecificCommand},
-    script::*,
-    shells::SupportedShell,
-};
+use crate::utils::{config::ShellSpecificCommand, script::*, shells::SupportedShell};
 
 pub fn init(
     current_shell: &SupportedShell,

@@ -131,7 +131,7 @@ pub fn update_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error
     };
 
     // 2. rename current folder
-    let current_folder_path = get_payload_current_install_dir_path(&payload);
+    //let current_folder_path = get_payload_current_install_dir_path(&payload);
 
     // 3. process payload (create new current folder)
     Ok(())
