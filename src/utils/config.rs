@@ -128,14 +128,12 @@ pub struct SupportedShellSpecificSourceTarget {
     pub wincmd: Option<SourceTarget>,
 }
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ShellSpecificSourceTarget {
     Generic(SourceTarget),
     ShellSpecific(SupportedShellSpecificSourceTarget),
 }
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct SupportedShellSpecificEvaluatable {
@@ -153,7 +151,6 @@ pub enum ShellSpecificEvaluatable {
     Generic(String),
     ShellSpecific(SupportedShellSpecificEvaluatable),
 }
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Payload {
@@ -232,11 +229,15 @@ mod parse_tests {
                 resource: AdaptiveResource::Standard(Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string())),
                 install: Some(ShellSpecificCommand::ShellSpecific(SupportedShellSpecificCommand{
                         sh:Some( OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand{
-                            macos: Some("./GitAhead*.sh --include-subdir".to_string()), 
-                            linux: None, windows: None}, 
-                        )), 
-                        zsh: None, bash: None, fish: None, powershell: None, wincmd: None} 
-                    ),
+                            macos: Some("./GitAhead*.sh --include-subdir".to_string()),
+                            linux: None, windows: None}
+                        )),
+                        zsh: None,
+                        bash: None,
+                        fish: None,
+                        powershell: None,
+                        wincmd: None
+                    }),
                 ),
                 update: None,
                 src: None,
@@ -281,13 +282,20 @@ mod parse_tests {
                 from_release: None,
                 binary_pattern: None,
             })),
-            install: Some(ShellSpecificCommand::ShellSpecific(SupportedShellSpecificCommand{
-                sh: Some(OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand{ 
-                    macos: Some("./GitAhead*.sh --include-subdir".to_string()), 
-                    linux: None, windows: None })
-                ), 
-                zsh: None, bash: None, fish: None, powershell: None, wincmd: None
-            })),
+            install: Some(ShellSpecificCommand::ShellSpecific(
+                SupportedShellSpecificCommand {
+                    sh: Some(OSSpecificCommand::OSSpecific(SupportedOSSpecificCommand {
+                        macos: Some("./GitAhead*.sh --include-subdir".to_string()),
+                        linux: None,
+                        windows: None,
+                    })),
+                    zsh: None,
+                    bash: None,
+                    fish: None,
+                    powershell: None,
+                    wincmd: None,
+                },
+            )),
             update: None,
             src: None,
             extract: None,
@@ -320,9 +328,9 @@ mod parse_tests {
         let actual_resource = &actual.first().unwrap().resource;
         if let AdaptiveResource::Standard(res) = actual_resource {
             if let Resource::Repo(rel) = res {
-                return assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected)
+                return assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected);
             }
-        } 
+        }
 
         panic!("No binary_pattern")
     }
@@ -346,15 +354,7 @@ mod parse_tests {
         let actual: Vec<Payload> = parse(config).unwrap();
         let expected = "*.tar.gz";
 
-        assert_eq!(
-            actual
-                .first()
-                .unwrap()
-                .extract
-                .as_ref()
-                .unwrap(),
-            expected
-        )
+        assert_eq!(actual.first().unwrap().extract.as_ref().unwrap(), expected)
     }
 
     #[test]
@@ -428,13 +428,20 @@ mod from_reader_tests {
                 from_release: None,
                 binary_pattern: None,
             })),
-            install:Some(ShellSpecificCommand::ShellSpecific( SupportedShellSpecificCommand {
-                sh: Some(OSSpecificCommand::OSSpecific( SupportedOSSpecificCommand {
-                    macos: Some("./GitAhead*.sh --include-subdir".to_string()),
-                    linux: None, windows: None,
-                })),
-                zsh: None, bash: None, fish: None, powershell: None, wincmd: None, 
-            })),
+            install: Some(ShellSpecificCommand::ShellSpecific(
+                SupportedShellSpecificCommand {
+                    sh: Some(OSSpecificCommand::OSSpecific(SupportedOSSpecificCommand {
+                        macos: Some("./GitAhead*.sh --include-subdir".to_string()),
+                        linux: None,
+                        windows: None,
+                    })),
+                    zsh: None,
+                    bash: None,
+                    fish: None,
+                    powershell: None,
+                    wincmd: None,
+                },
+            )),
             update: None,
             src: None,
             extract: None,

@@ -3,7 +3,7 @@ use glob::glob;
 use std::fs;
 
 use crate::utils::{
-    config::{ShellSpecificSourceTarget, SourceTarget, SupportedShellSpecificSourceTarget},
+    config::{ShellSpecificSourceTarget, SourceTarget},
     shells::SupportedShell,
 };
 
