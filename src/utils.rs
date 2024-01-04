@@ -1,8 +1,13 @@
 pub mod cli;
+pub mod completion;
 pub mod config;
+pub mod evaluatable;
+pub mod httpclient;
+pub mod listing;
 pub mod paths;
 pub mod pipeline;
 pub mod script;
 pub mod shells;
 pub mod shim;
 pub mod symlink;
+pub mod update;

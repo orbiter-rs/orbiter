@@ -7,7 +7,7 @@ pub fn extract(
     current_shell: &SupportedShell,
     cmd: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    run_cmd(current_shell, &cmd)?;
+    run_cmd_in_shell(current_shell, cmd)?;
 
     Ok(())
 }
@@ -21,13 +21,13 @@ pub fn extract_asset(
     if let Some(kind) = &infer_kind {
         match kind.extension() {
             "zip" => {
-                run_cmd(current_shell, &format!("unzip {}", asset_path_string))?;
+                run_cmd_in_shell(current_shell, &format!("unzip {}", asset_path_string))?;
             }
             "gz" => {
-                run_cmd(current_shell, &format!("tar xvf {}", asset_path_string))?;
+                run_cmd_in_shell(current_shell, &format!("tar xvf {}", asset_path_string))?;
             }
             "deb" => {
-                run_cmd(
+                run_cmd_in_shell(
                     current_shell,
                     &format!(
                         "ar xv {}; ls *.tar.* | xargs -n 1 tar xvf",
@@ -41,7 +41,7 @@ pub fn extract_asset(
         println!("ext {:?}", ext);
         match ext.to_str().unwrap() {
             "dmg" => {
-                run_cmd(
+                run_cmd_in_shell(
                     current_shell,
                     &format!(
                         r#"

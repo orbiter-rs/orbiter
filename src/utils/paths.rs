@@ -64,7 +64,7 @@ pub fn get_home_dir_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
 pub fn get_payload_dir_path(payload: &Payload) -> Result<PathBuf, Box<dyn std::error::Error>> {
     Ok(get_home_dir_path()?
         .join(DEFAULT_ORBITER_PAYLOADS_HOME)
-        .join(payload.id.as_ref().unwrap()))
+        .join(&payload.id))
 }
 
 // .orbiter/payloads/<payload id>/current

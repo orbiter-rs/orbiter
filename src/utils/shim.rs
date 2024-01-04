@@ -34,7 +34,7 @@ pub fn get_basic_shim(
     let resolved_bin_path = resolve_single_path(bin_dir)?;
 
     // set exec mode
-    run_cmd(
+    run_cmd_in_shell(
         current_shell,
         &format!("chmod +x {}", &resolved_bin_path.display().to_string()),
     )?;
@@ -77,7 +77,7 @@ pub fn create_shim(
     io::copy(&mut shim_content.as_bytes(), &mut dest)?;
 
     // set shim mode
-    run_cmd(
+    run_cmd_in_shell(
         current_shell,
         &format!("chmod +x {}", &shim_path.display().to_string()),
     )?;

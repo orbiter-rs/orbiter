@@ -5,6 +5,8 @@ use std::io::Read;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::providers::Providers;
+
 use super::paths::*;
 
 pub fn from_reader(reader: &mut dyn Read) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
@@ -21,7 +23,7 @@ pub fn get_payloads() -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Repo {
     pub repo: String,
-    pub provider: Option<String>,
+    pub provider: Option<Providers>,
     pub from_release: Option<bool>,
     pub ver: Option<String>,
     pub binary_pattern: Option<String>,
@@ -159,7 +161,7 @@ pub struct Payload {
     // given a struct. The function is generic over the field type T (here T is
     // `Build`) so it can be reused for any field that implements both `FromStr`
     // and `Deserialize`.
-    pub id: Option<String>,
+    pub id: String,
     pub init: Option<ShellSpecificCommand>,
     pub resource: AdaptiveResource,
     pub extract: Option<String>, // path to the file to be extracted
@@ -173,6 +175,8 @@ pub struct Payload {
 
 #[cfg(test)]
 mod parse_tests {
+    use crate::providers::Providers;
+
     use super::*;
 
     pub fn parse(config: &str) -> Result<Vec<Payload>, Box<dyn std::error::Error>> {
@@ -182,14 +186,15 @@ mod parse_tests {
     #[test]
     fn it_should_parse_minimum() {
         let config = r#"
-        - resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
+        - id: minimum
+          resource: https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US
           exec: "**/firefox"
         "#;
 
         let actual: Vec<Payload> = parse(config).unwrap();
         let expected = vec![
             Payload {
-                id: None,
+                id: "minimum".to_string(),
                 init: None,
                 resource: AdaptiveResource::Standard(Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string())),
                 install: None,
@@ -224,7 +229,7 @@ mod parse_tests {
         let actual: Vec<Payload> = parse(config).unwrap();
         let expected = vec![
             Payload {
-                id: Some("ff-dev".to_string()),
+                id: "ff-dev".to_string(),
                 init: None,
                 resource: AdaptiveResource::Standard(Resource::Location("https://download.mozilla.org/?product=firefox-devedition-latest-ssl&os=linux64&lang=en-US".to_string())),
                 install: Some(ShellSpecificCommand::ShellSpecific(SupportedShellSpecificCommand{
@@ -273,7 +278,7 @@ mod parse_tests {
 
         let actual: Vec<Payload> = parse(config).unwrap();
         let expected = vec![Payload {
-            id: Some("gitahead".to_string()),
+            id: "gitahead".to_string(),
             init: None,
             resource: AdaptiveResource::Standard(Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),
@@ -312,28 +317,57 @@ mod parse_tests {
     }
 
     #[test]
-    fn it_should_parse_repo_release() {
+    fn it_should_parse_resource_repo() {
         let config = r#"
         - id: neovim
           resource:
             repo: neovim/neovim
+            provider: github
+            from_release: true
             binary_pattern: "*.tar.gz"
           extract: "*.tar.*"
           exec: "**/bin/nvim"
         "#;
 
-        let actual: Vec<Payload> = parse(config).unwrap();
-        let expected = "*.tar.gz";
-
+        let actual = parse(config).unwrap();
         let actual_resource = &actual.first().unwrap().resource;
         if let AdaptiveResource::Standard(res) = actual_resource {
             if let Resource::Repo(rel) = res {
-                return assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected);
+                assert_eq!(rel.provider.as_ref().unwrap(), &Providers::GitHub);
+                assert_eq!(rel.from_release.unwrap(), true);
+                assert_eq!(rel.binary_pattern.as_ref().unwrap(), "*.tar.gz");
+                return;
             }
         }
 
-        panic!("No binary_pattern")
+        panic!("Invalid resource repo config")
     }
+
+    // #[test]
+    // fn it_should_parse_repo() {
+    //     let config = r#"
+    //     - id: neovim
+    //       resource:
+    //         repo: neovim/neovim
+    //         provider: github
+    //         binary_pattern: "*.tar.gz"
+    //       extract: "*.tar.*"
+    //       exec: "**/bin/nvim"
+    //     "#;
+
+    //     let actual: Vec<Payload> = parse(config).unwrap();
+    //     let expected = "*.tar.gz";
+
+    //     let actual_resource = &actual.first().unwrap().resource;
+    //     if let AdaptiveResource::Standard(res) = actual_resource {
+    //         if let Resource::Repo(rel) = res {
+    //             assert_eq!(rel.binary_pattern.as_ref().unwrap(), expected);
+    //             return;
+    //         }
+    //     }
+
+    //     panic!("No binary_pattern")
+    // }
 
     #[test]
     fn it_should_parse_extract() {
@@ -419,7 +453,7 @@ mod from_reader_tests {
 
         let actual: Vec<Payload> = from_reader(&mut bufreader).unwrap();
         let expected = vec![Payload {
-            id: Some("gitahead".to_string()),
+            id: "gitahead".to_string(),
             init: None,
             resource: AdaptiveResource::Standard(Resource::Repo(Repo {
                 repo: "gitahead/gitahead".to_string(),

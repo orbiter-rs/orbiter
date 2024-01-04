@@ -4,17 +4,24 @@ use clap::{Parser, Subcommand};
 #[command(version)]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Option<Commands>,
+    pub command: Commands,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// update item(s)
+    /// Initialise shell
     Init {
+        /// Name of shell (Options: Zsh, Bash, PowerShell, etc.)
         shell: String,
     },
+    /// Update a payload
     Update {
-        item: Option<String>,
+        /// ID of the payload to update
+        id: Option<String>,
     },
-    // List,
+    /// List configured payloads
+    List {
+        /// Scope of the payloads to list (effective(default)/all)
+        scope: Option<String>,
+    },
 }

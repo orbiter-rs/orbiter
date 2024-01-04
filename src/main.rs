@@ -1,60 +1,82 @@
 use clap::Parser;
 use log::error;
+use orbiter::utils::completion::load_completion;
+use orbiter::utils::config::Payload;
+use orbiter::utils::listing::get_listing;
+use orbiter::utils::listing::ListingScope;
 use orbiter::utils::paths::update_path;
 use orbiter::utils::shells::SupportedShell;
-use std::process;
 
 use orbiter::utils::cli;
 use orbiter::utils::config;
 use orbiter::utils::pipeline;
+use orbiter::utils::update;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
     let cmd = cli::Cli::parse();
 
-    let mut current_shell: SupportedShell = SupportedShell::Sh;
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
-    match &cmd.command {
-        Some(cli::Commands::Init { shell }) => {
-            current_shell = SupportedShell::from_str(shell);
+    let result = match &cmd.command {
+        cli::Commands::Init { shell } => {
+            let current_shell = SupportedShell::from_str(shell);
 
             // update PATH env var to enable shims
             update_path(&current_shell);
+
+            init_shell(&current_shell)
         }
-        Some(cli::Commands::Update { item }) => {
-            if let Some(item_id) = item {
-                println!("update item={:?}", &item_id);
+        cli::Commands::Update { id } => {
+            let payloads = config::get_payloads()?;
+            if let Some(payload_id) = id {
+                println!("Updating payload: {:?}", &payload_id);
+                update_payload(&payloads, payload_id)?
             } else {
-                println!("Printing all items...");
-            }
+                update::self_update()?
+            };
+
+            println!("Restart terminal to take effect");
+
+            Ok(())
         }
-        // Some(cli::Commands::List) => {
-        //     println!("Printing list");
-        // }
-        None => {}
-    }
+        cli::Commands::List { scope } => {
+            let payloads = config::get_payloads()?;
+            // list items
+            let listing_scope = ListingScope::from(scope);
+            let listing = get_listing(&payloads, &listing_scope)?;
+            println!("{:?} payloads: {:?}", &listing_scope, &listing);
 
-    if let Err(e) = run(&current_shell) {
-        println!("Orbiter has encountered an error: {e}");
+            Ok(())
+        }
+    };
 
-        process::exit(1);
-    }
+    Ok(if let Err(e) = result {
+        error!("Orbiter has encountered an error: {e}");
+    })
 }
 
-fn run(current_shell: &SupportedShell) -> Result<(), Box<dyn std::error::Error>> {
-    env_logger::init();
-    let payloads = config::get_payloads()?;
-    payloads.iter().for_each(|payload| {
-        let result = pipeline::process_payload(current_shell, &payload);
-        match &result {
-            Ok(_) => (),
-            Err(err) => error!("error processing payload [{:#?}]: {}", &payload, &err),
-        }
+fn init_shell(current_shell: &SupportedShell) -> Result<(), Box<dyn std::error::Error>> {
+    config::get_payloads()?.iter().for_each(|payload| {
+        pipeline::process_payload(current_shell, &payload)
+            .unwrap_or_else(|err| error!("error processing payload [{:#?}]: {}", &payload, &err))
     });
 
-    // replace with stub
-    println!("autoload -Uz compinit");
-    println!("compinit");
+    // enables completion for shells that require it
+    load_completion(current_shell);
 
     Ok(())
+}
+
+fn update_payload(
+    payloads: &Vec<Payload>,
+    payload_id: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(
+        if let Some(payload) = payloads.iter().find(|p| p.id == payload_id) {
+            update::update_payload(payload)?
+        } else {
+            error!("Payload with id {} not found", &payload_id)
+        },
+    )
 }
