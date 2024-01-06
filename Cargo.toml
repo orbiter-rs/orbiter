@@ -21,7 +21,7 @@ eyre = "0.6"
 serde = { version = "1.0.195", features = ["derive"] }
 serde_yaml = "0.9.30"
 regex = "1.4"
-reqwest = { version = "0.11", features = ["blocking", "json"] }
+reqwest = { version = "0.11", features = ["rustls-tls","blocking", "json"] }
 
 dirs = "3.0"
 glob = "0.3"
