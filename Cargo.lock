@@ -650,7 +650,7 @@ checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
 
 [[package]]
 name = "orbiter"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "clap",
  "dirs",
