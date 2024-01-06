@@ -15,7 +15,7 @@ pub fn create_symlink(
 
     let resolved_bin_path = resolve_single_path(file_path)?;
     // set exec mode
-    run_cmd(
+    run_cmd_in_shell(
         current_shell,
         &format!("chmod +x {}", &resolved_bin_path.display().to_string()),
     )?;

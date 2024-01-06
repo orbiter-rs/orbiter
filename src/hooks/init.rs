@@ -5,9 +5,11 @@ pub fn init(
     init_cmd: &ShellSpecificCommand,
 ) -> Result<String, Box<dyn std::error::Error>> {
     match init_cmd {
-        ShellSpecificCommand::Generic(generic) => run_cmd_with_output(current_shell, generic),
+        ShellSpecificCommand::Generic(generic) => {
+            run_cmd_in_shell_with_output(current_shell, generic)
+        }
         ShellSpecificCommand::ShellSpecific(shell_specific) => {
-            run_shell_cmd(current_shell, shell_specific)
+            run_shell_specific_cmd(current_shell, shell_specific)
         }
     }
 }

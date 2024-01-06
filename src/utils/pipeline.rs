@@ -20,7 +20,9 @@ pub fn process_payload(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // check if already worked on
     let payload_orbiter_dir_path = get_payload_config_dir_path(payload)?;
-    if !payload_orbiter_dir_path.exists() {
+    if !payload_orbiter_dir_path.exists()
+        || !get_payload_current_install_dir_path(payload)?.exists()
+    {
         info!(
             "Creating payload config directory {}",
             payload_orbiter_dir_path.to_str().unwrap()
@@ -34,7 +36,7 @@ pub fn process_payload(
         };
 
         // save resource
-        let resource_path = get_adaptive_resource(current_shell, payload, init_result.as_deref())?;
+        let resource_path = get_adaptive_resource(payload, init_result.as_deref())?;
 
         // set wd to payload current dir
         let current_install_dir = get_payload_current_install_dir_path(payload)?;
@@ -110,29 +112,5 @@ pub fn process_payload(
         load(current_shell, load_cmd)?;
     }
 
-    Ok(())
-}
-
-pub fn update_payload(payload: &Payload) -> Result<(), Box<dyn std::error::Error>> {
-    // 1. remove shim
-    if let Some(exec) = &payload.exec {
-        match exec {
-            Executable::Run(cmd) => {
-                remove_shim(&cmd)?;
-            }
-            Executable::Command { run, alias, .. } => {
-                if let Some(alias) = alias.as_ref() {
-                    remove_shim(alias)?;
-                } else {
-                    remove_shim(run)?;
-                }
-            }
-        };
-    };
-
-    // 2. rename current folder
-    //let current_folder_path = get_payload_current_install_dir_path(&payload);
-
-    // 3. process payload (create new current folder)
     Ok(())
 }
