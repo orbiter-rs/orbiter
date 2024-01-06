@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/orbiter-rs/orbiter/compare/v0.6.0...v0.7.0) (2024-01-06)
+
+
+### Features
+
+* use rustls ([0ab89e2](https://github.com/orbiter-rs/orbiter/commit/0ab89e203512b5a895473a1b7f03fd3bdac557a0))
+
 ## [0.6.0](https://github.com/orbiter-rs/orbiter/compare/v0.5.0...v0.6.0) (2024-01-06)
 
 
