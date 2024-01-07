@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/orbiter-rs/orbiter/compare/v0.8.0...v0.9.0) (2024-01-07)
+
+
+### Features
+
+* enable basic mac and windows builds (no mac signing, no win installer) ([9b9b53a](https://github.com/orbiter-rs/orbiter/commit/9b9b53aadff769e262b1eb70bab5c3ed7f8cd80d))
+
 ## [0.8.0](https://github.com/orbiter-rs/orbiter/compare/v0.7.0...v0.8.0) (2024-01-06)
 
 
