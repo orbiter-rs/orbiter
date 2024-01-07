@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+    <metadata>
+        <id>orbiter</id>
+        <title>Orbiter</title>
+        <version>0.0.0.1</version>
+        <authors>Orbiter Contributors</authors>
+        <owners>davidkna,saanuregh</owners>
+        <summary>The cross-shell prompt for astronauts</summary>
+        <description>
+            Orbiter is the minimal, blazing fast, and extremely customizable prompt for any shell!
+            Shows the information you need, while staying sleek and minimal.
+        </description>
+        <packageSourceUrl>https://github.com/orbiter-rs/orbiter/tree/master/install/windows/choco</packageSourceUrl>
+        <projectUrl>https://orbiter.rs</projectUrl>
+        <projectSourceUrl>https://github.com/orbiter-rs/orbiter</projectSourceUrl>
+        <iconUrl>https://orbiter.rs/icon.png</iconUrl>
+        <tags>powershell prompt orbiter pwsh</tags>
+        <copyright>© 2023 Orbiter Contributors</copyright>
+        <licenseUrl>https://github.com/orbiter-rs/orbiter/blob/master/LICENSE</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <releaseNotes></releaseNotes>
+    </metadata>
+    <files>
+        <file src="tools\**" target="tools" />
+    </files>
+</package>
